@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: gatepass
+          POSTGRES_PASSWORD: gatepass
+          POSTGRES_DB: gatepass
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U gatepass"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      # Throwaway values for CI only; production secrets live in Vercel.
+      DATABASE_URL: postgresql://gatepass:gatepass@localhost:5432/gatepass
+      DIRECT_URL: postgresql://gatepass:gatepass@localhost:5432/gatepass
+      TEST_DATABASE_URL: postgresql://gatepass:gatepass@localhost:5432/gatepass?schema=gatepass_test
+      APP_URL: http://localhost:3000
+      APP_ENCRYPTION_KEY: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+      TICKET_SIGNING_SECRET: ci-ticket-signing-secret-0123456789abcdef
+      CRON_SECRET: ci-cron-secret-0123456789
+      MOCK_PAYMENT_SECRET: ci-mock-payment-secret-0123
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run format:check
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npx prisma migrate deploy
+      - run: npm test
+      - run: npm run build

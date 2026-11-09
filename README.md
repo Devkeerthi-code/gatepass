@@ -46,7 +46,11 @@ TODO: add screenshots to `docs/` (concert page, checkout, ticket, scanner result
   - A fan-ambassador referral leaderboard.
   - Waitlist auto-offers.
 - Live dashboard: people sold, test revenue, check-ins vs sold, sold per ticket type, entries per 15 minutes, and the latest scans.
-- Attendee search, guest-list (comp) tickets, a "needs refund" list, and CSV export.
+- Attendee search, guest-list (comp) tickets, CSV export, and **one-click refunds**:
+  - Through the Razorpay refund API, or simulated in Mock mode.
+  - The order row is locked during the refund, so it can never be refunded twice.
+  - Refunded QR codes are rejected at the gate, and the seats go back on sale (waitlist first).
+- Optional **ticket and invite emails** through Resend.
 - Team: invite volunteers or admins with a one-time link, change roles, remove people (they are signed out immediately).
 - **Payments settings:** paste your Razorpay Key ID and Secret, press _Test connection_, and new checkouts go to your Razorpay account. Three modes:
   - **Mock:** default, no keys needed.
@@ -69,6 +73,21 @@ TODO: add screenshots to `docs/` (concert page, checkout, ticket, scanner result
 ## Tech stack
 
 Next.js 16 (App Router, Cache Components) · TypeScript (strict) · Tailwind CSS 4 + custom design tokens · PostgreSQL on Neon · Prisma 7 (driver adapter) · zod · bcryptjs · Razorpay (REST + Checkout.js) · `qrcode` · `qr-scanner` · `idb` · Vitest.
+
+## Production readiness
+
+- **Security headers:** CSP (Razorpay domains only), `X-Frame-Options: DENY`, HSTS, `nosniff`, a strict referrer policy, and a camera-only Permissions-Policy.
+- **Rate limits in Postgres** (one atomic upsert, keys hashed), so they hold across serverless instances. They cover login, sign-up, holds, payment confirmation, lookups, waitlist, giveaways and key changes.
+- **Auth:**
+  - bcrypt passwords.
+  - Database sessions stored as SHA-256 of the token.
+  - Login timing equalised to prevent account enumeration.
+  - Removed members are signed out immediately.
+- **Secrets:** hosts' Razorpay secrets are encrypted with AES-256-GCM and never sent back to the browser.
+- **Validation:** all input goes through zod on the server; posters are checked by magic bytes; the CSV export guards against formula injection.
+- **Startup:** missing environment variables fail fast with a clear message (`instrumentation.ts`).
+- **Monitoring:** `GET /api/health` reports database up/down for uptime monitors.
+- **CI** (GitHub Actions): Prettier check, ESLint, `tsc`, migrations, all tests against a real Postgres service, and a production build.
 
 ## Architecture
 
@@ -200,14 +219,14 @@ Use the printed `https://…trycloudflare.com/api/webhooks/razorpay/<orgId>` as 
 
 ## Limitations and what breaks at scale
 
-- **Rate limiting is in-memory.** On serverless, each instance has its own window, so the limits are approximate. Use Upstash Redis or Vercel KV for real limits.
 - **Hot ticket types.** Every hold on one ticket type updates the same row. Postgres handles hundreds of holds per second, but a 50,000-person flash drop would queue up on that row lock. The fix would be sharding inventory into buckets or using a queue in front of it.
-- **No email or SMS.** Tickets are delivered as links, plus lookup by email and phone. Drop alerts and waitlist offers rely on the buyer checking their link. Adding Resend or MSG91 would close that gap.
 - **The dashboard polls every 5 seconds** instead of using push. That's fine for a few hosts, wasteful for hundreds; server-sent events would be the next step.
-- **Posters are stored in Postgres** (≤1.5 MB). Simple, but object storage (Vercel Blob or R2) is better at scale.
-- **Refunds are manual.** `NEEDS_REFUND` orders are listed with the payment ID, and the host refunds them in Razorpay. There is no Razorpay refund API call yet.
+- **Email is optional (Resend).** Without it, tickets are delivered as on-screen links plus lookup by email and phone. Drop alerts and waitlist offers are never emailed; fans see them only when they revisit the page.
+- **Posters are stored in Postgres** (≤1.5 MB, magic bytes checked). Simple, but object storage (Vercel Blob or R2) is better at scale.
+- **Refunds are all-or-nothing per order.** You can't partially refund one ticket of a group order, and an order where anyone has already entered can't be refunded from GatePass.
 - **Offline scanning trusts the cached list.** Two phones offline at the same moment could both admit the same ticket. The server keeps the first scan and reports the conflict on sync.
-- **Per-person promo limits** are checked with a count before the insert, so two simultaneous checkouts with the same email could both pass. The total-use cap is atomic.
+- **No password reset or 2FA for hosts yet.** Sessions are database-backed and revocable, but account recovery needs an admin to re-invite.
+- **The CSP allows `'unsafe-inline'` scripts** because Next's inline bootstrap and the theme script need it without nonces. Nonce-based CSP would be stricter.
 
 ## Usage tracking
 
@@ -222,9 +241,9 @@ Use the printed `https://…trycloudflare.com/api/webhooks/razorpay/<orgId>` as 
 
 ## What I'd improve next
 
-- Email and WhatsApp delivery for tickets, drop alerts and waitlist offers.
-- Razorpay refunds from the dashboard, plus ticket transfer to a friend.
-- Real-time dashboard updates over server-sent events, and Redis-backed rate limiting.
+- WhatsApp delivery for tickets, drop alerts and waitlist offers (email already works through Resend).
+- Ticket transfer to a friend, and partial refunds for group orders.
+- Real-time dashboard updates over server-sent events, and host password reset with 2FA.
 
 ---
 
