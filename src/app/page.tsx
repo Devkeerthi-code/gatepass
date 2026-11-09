@@ -1,69 +1,120 @@
-import Image from "next/image";
+import Link from "next/link";
+import { connection } from "next/server";
+import { Suspense } from "react";
+import { FlingTicket } from "@/components/fling-ticket";
+import { Icon } from "@/components/icon";
+import { parseTicketStyle, TicketCard } from "@/components/ticket-card";
+import { db } from "@/lib/db";
+import { formatDay, formatTime } from "@/lib/format";
+
+async function UpcomingConcerts() {
+  // Availability is time-based, so this list is rendered per request.
+  await connection();
+  const events = await db.event.findMany({
+    where: { status: "PUBLISHED", endsAt: { gte: new Date() } },
+    orderBy: { startsAt: "asc" },
+    take: 6,
+    include: { org: { select: { name: true } } },
+  });
+  if (events.length === 0) return <p className="small muted">No public concerts right now.</p>;
+  return (
+    <ul className="event-grid" role="list">
+      {events.map((e) => {
+        const style = parseTicketStyle(e.ticketStock);
+        return (
+          <li key={e.id}>
+            <Link className="event-link" href={`/c/${e.slug}`}>
+              <TicketCard
+                name={e.name}
+                kicker={`${e.org.name}${e.isDemo ? " · demo" : ""}`}
+                perks={`${formatDay(e.startsAt)} · ${formatTime(e.startsAt)} · ${e.venue}`}
+                price="GET"
+                priceNote="TICKETS →"
+                stock={style.stock}
+                pattern={style.pattern}
+              />
+            </Link>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+const STEPS: { icon: "ticket" | "card" | "scan" | "grid"; title: string; body: string }[] = [
+  { icon: "ticket", title: "Seats can't oversell", body: "Each checkout holds seats for 10 minutes in the database. When the last seat is held, the next buyer sees Sold out, not an apology later." },
+  { icon: "card", title: "Payments confirm themselves", body: "Razorpay's signed result issues the ticket. If the buyer closes the tab, the webhook does it instead. Never twice." },
+  { icon: "scan", title: "Gate in two seconds", body: "Volunteers scan with their phone. Green, amber or red, full screen. Second scans say who let them in and when. Works offline." },
+  { icon: "grid", title: "You see the night live", body: "Sold per ticket type, revenue, who's in, arrivals every 15 minutes, and a CSV for the sponsors." },
+];
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+    <>
+      <header className="topbar">
+        <Link className="brand" href="/">
+          <Icon name="logo" className="brand-mark" />
+          GatePass
+        </Link>
+        <span className="grow" />
+        <Link className="btn btn-ghost btn-sm" href="/find">
+          Find my tickets
+        </Link>
+        <Link className="btn btn-sm" href="/login">
+          Log in
+        </Link>
+      </header>
+      <main className="container landing">
+        <section className="hero">
+          <div className="stack">
+            <p className="label">For college concerts, fest nights and indie gigs</p>
+            <h1 className="display hero-title">
+              Tickets and the gate, <span>sorted.</span>
+            </h1>
+            <p className="hero-sub">
+              Stop collecting UPI screenshots on Google Forms and ticking names off a printed list. Sell limited seats without overselling, take payments
+              through your own Razorpay account, and scan people in with any phone.
+            </p>
+            <div className="row wrap">
+              <Link className="btn btn-accent btn-lg" href="/signup">
+                Host a concert
+              </Link>
+              <Link className="btn btn-lg" href="/c/night-shift-demo">
+                See a demo concert
+              </Link>
+            </div>
+            <p className="xs muted">Free to try. Payments run in Mock mode until you paste your Razorpay keys.</p>
+          </div>
+          <div className="hero-art" aria-hidden="true">
+            <FlingTicket />
+          </div>
+        </section>
+
+        <section aria-labelledby="how-h" className="stack">
+          <h2 id="how-h" className="display" style={{ fontSize: "var(--t-xl)" }}>
+            What it fixes
+          </h2>
+          <div className="idea-grid">
+            {STEPS.map((s) => (
+              <div key={s.title} className="card idea">
+                <Icon name={s.icon} />
+                <h3>{s.title}</h3>
+                <p className="small muted">{s.body}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section aria-labelledby="up-h" className="stack">
+          <h2 id="up-h" className="display" style={{ fontSize: "var(--t-xl)" }}>
+            On sale now
+          </h2>
+          <Suspense fallback={<div className="sk" style={{ height: 140, borderRadius: 12 }} />}>
+            <UpcomingConcerts />
+          </Suspense>
+        </section>
       </main>
-    </div>
+      <footer className="container site-foot xs muted">GatePass · built for college crews in India · prices in ₹, times in IST</footer>
+    </>
   );
 }
