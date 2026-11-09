@@ -12,7 +12,7 @@ async function ScannerLoader({ params }: { params: Promise<{ eventId: string }> 
   const viewer = await requireViewer("checkin");
   const event = await db.event.findFirst({ where: { id: eventId, orgId: viewer.orgId }, select: { id: true, name: true, isDemo: true } });
   if (!event) notFound();
-  return <Scanner eventId={event.id} eventName={`${event.name}${event.isDemo ? " (demo)" : ""}`} volunteerName={viewer.name} />;
+  return <Scanner eventId={event.id} eventName={event.isDemo && !/demo/i.test(event.name) ? `${event.name} (demo)` : event.name} volunteerName={viewer.name} />;
 }
 
 export default function ScanEventPage({ params }: { params: Promise<{ eventId: string }> }) {

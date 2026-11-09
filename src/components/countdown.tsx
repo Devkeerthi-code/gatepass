@@ -9,9 +9,11 @@ function pad(n: number) {
 
 export function formatRemaining(ms: number, withHours: boolean): string {
   const total = Math.max(0, Math.floor(ms / 1000));
-  const h = Math.floor(total / 3600);
+  const days = Math.floor(total / 86_400);
+  const h = Math.floor((total % 86_400) / 3600);
   const m = Math.floor((total % 3600) / 60);
   const s = total % 60;
+  if (days > 0) return `${days}d ${pad(h)}:${pad(m)}:${pad(s)}`;
   if (withHours || h > 0) return `${pad(h)}:${pad(m)}:${pad(s)}`;
   return `${pad(m)}:${pad(s)}`;
 }

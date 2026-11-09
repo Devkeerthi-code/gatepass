@@ -139,7 +139,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .input:focus, .select:focus, .textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
 .input[aria-invalid="true"] { border-color: var(--no); }
 .input-group { display: flex; gap: var(--s2); }
-.grid-2 { display: grid; gap: var(--s4); }
+.grid-2 { display: grid; gap: var(--s4); align-items: start; }
 @media (min-width: 560px) { .grid-2 { grid-template-columns: 1fr 1fr; } }
 .notice { display: flex; gap: var(--s3); padding: var(--s3); border-radius: var(--r); font-size: var(--t-sm); background: var(--surface-2); border: 1px solid var(--line); }
 .notice-test { background: color-mix(in srgb, var(--test) 25%, var(--surface)); border-color: color-mix(in srgb, var(--test) 70%, var(--line)); }
@@ -226,7 +226,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 @keyframes sk { from { background-position: 100% 0; } to { background-position: 0 0; } }
 
 /* ---------- dialog ---------- */
-dialog.sheet { border: 0; padding: 0; background: var(--surface); color: var(--ink); border-radius: var(--r-lg); width: min(560px, calc(100vw - 16px)); max-height: calc(100dvh - 32px); box-shadow: 0 30px 80px -20px rgba(22,19,15,.45); }
+dialog.sheet { margin: auto; border: 0; padding: 0; background: var(--surface); color: var(--ink); border-radius: var(--r-lg); width: min(560px, calc(100vw - 16px)); max-height: calc(100dvh - 32px); box-shadow: 0 30px 80px -20px rgba(22,19,15,.45); }
 dialog.sheet::backdrop { background: rgba(22,19,15,.4); }
 dialog.sheet[open] { animation: dlg var(--base) var(--spring); }
 @keyframes dlg { from { opacity: 0; transform: translateY(16px) scale(.98); } }
@@ -317,7 +317,7 @@ dialog.sheet[open] { animation: dlg var(--base) var(--spring); }
   @media (min-width: 980px) {
     .page { grid-template-columns: minmax(0, 1fr) 460px; grid-template-areas: "poster buy" "info buy"; align-items: start; column-gap: var(--s7); padding-bottom: var(--s8); }
     .page > * { min-width: 0; }
-    .a-poster { grid-area: poster; } .a-info { grid-area: info; } .a-buy { grid-area: buy; position: sticky; top: 16px; }
+    .a-poster { grid-area: poster; } .a-info { grid-area: info; } .a-buy { grid-area: buy; }
   }
   .facts { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; margin-top: var(--s4); }
   .facts > div { background: var(--surface); padding: var(--s3); }

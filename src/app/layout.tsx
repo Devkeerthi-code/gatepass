@@ -40,7 +40,8 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
-      <body>
+      {/* Browser extensions (e.g. Grammarly) add attributes to <body> before hydration. */}
+      <body suppressHydrationWarning>
         <Toaster>{children}</Toaster>
       </body>
     </html>

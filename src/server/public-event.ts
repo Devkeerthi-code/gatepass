@@ -2,7 +2,7 @@ import "server-only";
 import { db } from "@/lib/db";
 import { currentUnitPrice, nextPriceStep } from "@/lib/pricing";
 import { transaction } from "@/lib/tx";
-import { refreshTicketType } from "./inventory";
+import { expireOrders, offerWaitlist } from "./inventory";
 
 export type TierState = "ON_SALE" | "SOLD_OUT" | "NOT_YET" | "DROP" | "ENDED";
 
@@ -39,9 +39,14 @@ export async function getPublicEvent(slug: string, accessCode: string | null) {
   if (!base || base.status !== "PUBLISHED") return null;
 
   const now = new Date();
-  const tierIds = await db.ticketType.findMany({ where: { eventId: base.id }, select: { id: true } });
   await transaction(async (tx) => {
-    for (const t of tierIds) await refreshTicketType(tx, t.id, now);
+    await expireOrders(tx, { now, eventId: base.id });
+    const waiting = await tx.waitlistEntry.findMany({
+      where: { status: "WAITING", ticketType: { eventId: base.id } },
+      distinct: ["ticketTypeId"],
+      select: { ticketTypeId: true },
+    });
+    for (const w of waiting) await offerWaitlist(tx, w.ticketTypeId, now);
   });
 
   const event = await db.event.findUniqueOrThrow({

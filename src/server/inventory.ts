@@ -7,7 +7,7 @@ import { currentUnitPrice } from "@/lib/pricing";
 export const HOLD_MINUTES = 10;
 export const WAITLIST_OFFER_MINUTES = 15;
 
-type ExpireFilter = { now: Date; ticketTypeId?: string; orderId?: string; force?: boolean };
+type ExpireFilter = { now: Date; ticketTypeId?: string; eventId?: string; orderId?: string; force?: boolean };
 
 /**
  * Expires PENDING orders and gives their seats and promo uses back, all in one statement.
@@ -15,13 +15,14 @@ type ExpireFilter = { now: Date; ticketTypeId?: string; orderId?: string; force?
  * `force` releases an order before its hold runs out (buyer cancelled).
  */
 export async function expireOrders(tx: Tx, filter: ExpireFilter): Promise<number> {
-  const { now, ticketTypeId = null, orderId = null, force = false } = filter;
+  const { now, ticketTypeId = null, eventId = null, orderId = null, force = false } = filter;
   const rows = await tx.$queryRaw<{ released: number }[]>`
     WITH expired AS (
       UPDATE "Order" SET "status" = 'EXPIRED'
       WHERE "status" = 'PENDING'
         AND (${force}::boolean OR "holdExpiresAt" < ${now})
         AND (${ticketTypeId}::text IS NULL OR "ticketTypeId" = ${ticketTypeId})
+        AND (${eventId}::text IS NULL OR "eventId" = ${eventId})
         AND (${orderId}::text IS NULL OR "id" = ${orderId})
       RETURNING "id", "ticketTypeId", "qty", "promoId"
     ), seats AS (
