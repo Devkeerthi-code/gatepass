@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { Icon } from "@/components/icon";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { requireViewer } from "@/server/auth";
 import { logout } from "../(auth)/actions";
 import { HostNav, MobileTabs } from "./host-nav";
@@ -15,6 +16,7 @@ async function WhoAmI() {
           {viewer.name} · {viewer.role === "ADMIN" ? "Admin" : "Volunteer"}
         </div>
       </div>
+      <ThemeToggle />
       <form action={logout}>
         <button className="btn btn-ghost btn-sm" type="submit">
           Log out

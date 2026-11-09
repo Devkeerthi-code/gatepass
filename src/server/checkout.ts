@@ -2,6 +2,7 @@ import "server-only";
 import { db } from "@/lib/db";
 import { transaction } from "@/lib/tx";
 import { expireOrders } from "./inventory";
+import { emailTicketsLater } from "./email";
 import { applyDetails, confirmFree, confirmPaid, type BuyerDetails, type ConfirmOutcome } from "./orders";
 import { providerForOrg, providerForRef } from "./payments/resolve";
 import { PaymentProviderError } from "./payments/types";
@@ -16,6 +17,8 @@ export type CheckoutStep =
       keyId: string;
       providerOrderId: string;
       amountPaise: number;
+      discountPaise: number;
+      promoLabel: string | null;
       eventName: string;
       prefill: { name: string; email: string; contact: string };
     }
@@ -32,6 +35,7 @@ export async function startPayment(orderId: string, details: BuyerDetails, promo
     if (!issued) return { kind: "ERROR", message: "This order was already completed." };
     const order = await db.order.findUnique({ where: { id: orderId }, select: { eventId: true } });
     track("order.paid", { eventId: order?.eventId });
+    emailTicketsLater(orderId);
     return { kind: "FREE_DONE", orderId };
   }
 
@@ -57,6 +61,8 @@ export async function startPayment(orderId: string, details: BuyerDetails, promo
     keyId: provider.publicKeyId ?? "",
     providerOrderId,
     amountPaise: order.amountPaise,
+    discountPaise: order.discountPaise,
+    promoLabel: applied.promoLabel,
     eventName: order.event.name,
     prefill: { name: order.buyerName, email: order.email, contact: order.phone },
   };
@@ -71,7 +77,10 @@ export async function confirmFromCheckout(input: CallbackInput): Promise<Confirm
   const provider = await providerForRef(order.provider, order.event.orgId);
   if (!provider || !provider.verifyPaymentSignature(input)) return { status: "BAD_SIGNATURE" };
   const outcome = await transaction((tx) => confirmPaid(tx, { providerOrderId: input.providerOrderId, providerPaymentId: input.providerPaymentId, now: new Date() }));
-  if (outcome.status === "ISSUED") track("order.paid", { eventId: order.eventId });
+  if (outcome.status === "ISSUED") {
+    track("order.paid", { eventId: order.eventId });
+    emailTicketsLater(order.id);
+  }
   return outcome;
 }
 

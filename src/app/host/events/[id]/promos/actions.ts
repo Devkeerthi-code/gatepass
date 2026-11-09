@@ -10,6 +10,7 @@ import { rupeesToPaise } from "@/lib/money";
 import { isUniqueViolation } from "@/lib/prisma-errors";
 import { transaction } from "@/lib/tx";
 import { ownedEvent, viewerWith } from "@/server/auth";
+import { emailTicketsLater } from "@/server/email";
 import { createCompOrder } from "@/server/orders";
 import { track } from "@/server/usage";
 
@@ -123,6 +124,7 @@ export async function drawGiveaway(eventId: string, giveawayId: string): Promise
       createCompOrder(tx, { ticketTypeId: giveaway.ticketTypeId, qty: 1, buyerName: entry.name, email: entry.email, phone: entry.phone, source: "GIVEAWAY", now: new Date() }),
     );
     await db.giveawayEntry.update({ where: { id: entry.id }, data: { isWinner: true, orderId: order.ok ? order.orderId : null } });
+    if (order.ok) emailTicketsLater(order.orderId);
     winners.push({ name: entry.name, email: entry.email, ticketed: order.ok });
   }
   track("giveaway.drawn", { orgId: viewer.orgId, eventId });

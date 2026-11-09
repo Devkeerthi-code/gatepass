@@ -38,7 +38,7 @@ function clampScanTime(scannedAt: Date, now: Date): Date {
 async function loadTicket(tx: Tx, ticketId: string) {
   return tx.ticket.findUnique({
     where: { id: ticketId },
-    include: { ticketType: { select: { name: true } }, checkedInBy: { select: { name: true } } },
+    include: { ticketType: { select: { name: true } }, checkedInBy: { select: { name: true } }, order: { select: { status: true } } },
   });
 }
 
@@ -82,6 +82,10 @@ export async function checkIn(tx: Tx, input: CheckInInput): Promise<ScanOutcome>
     await log("INVALID", null);
     const reason = ticket ? "This ticket is for a different event." : "Not a GatePass ticket, or it has been tampered with.";
     return { result: "INVALID", reason };
+  }
+  if (ticket.order.status !== "PAID") {
+    await log("INVALID", ticket.id);
+    return { result: "INVALID", reason: "This ticket was refunded or cancelled." };
   }
 
   const admitted = await tx.ticket.updateMany({

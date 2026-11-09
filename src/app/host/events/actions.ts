@@ -116,6 +116,14 @@ export async function saveEvent(eventId: string, input: EventInput): Promise<Act
 }
 
 const MAX_POSTER_BYTES = 1_500_000;
+
+/** Checks the file's magic bytes, since the browser-reported MIME type can be spoofed. */
+function looksLikeImage(b: Uint8Array): boolean {
+  const jpg = b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff;
+  const png = b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4e && b[3] === 0x47;
+  const webp = String.fromCharCode(...b.slice(0, 4)) === "RIFF" && String.fromCharCode(...b.slice(8, 12)) === "WEBP";
+  return jpg || png || webp;
+}
 const POSTER_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
 export async function uploadPoster(eventId: string, form: FormData): Promise<ActionState> {
@@ -126,6 +134,7 @@ export async function uploadPoster(eventId: string, form: FormData): Promise<Act
   if (!POSTER_TYPES.includes(file.type)) return { error: "Use a JPG, PNG or WebP image." };
   if (file.size > MAX_POSTER_BYTES) return { error: "Keep the poster under 1.5 MB (export at ~1200px wide)." };
   const bytes = new Uint8Array(await file.arrayBuffer());
+  if (!looksLikeImage(bytes)) return { error: "That file isn't a real JPG, PNG or WebP image." };
   await db.event.update({ where: { id: eventId }, data: { posterData: bytes, posterMime: file.type } });
   return { ok: "Poster updated." };
 }

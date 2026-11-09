@@ -12,7 +12,7 @@ const bodySchema = z.object({
 /** Primary confirmation path, called right after Razorpay Checkout (or the mock) succeeds. */
 export async function POST(request: Request) {
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "local";
-  if (!rateLimit(`confirm:${ip}`, 30, 60_000)) return Response.json({ ok: false, result: "rate_limited" }, { status: 429 });
+  if (!(await rateLimit(`confirm:${ip}`, 30, 60_000))) return Response.json({ ok: false, result: "rate_limited" }, { status: 429 });
 
   let json: unknown;
   try {

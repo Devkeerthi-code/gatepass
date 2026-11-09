@@ -23,6 +23,7 @@ enum OrderStatus {
   EXPIRED
   FAILED
   NEEDS_REFUND
+  REFUNDED
 }
 
 enum OrderSource {
@@ -389,6 +390,8 @@ model Order {
   promoId           String?
   referralId        String?
   failureReason     String?
+  refundId          String?
+  refundedAt        DateTime?
   createdAt         DateTime         @default(now())
   paidAt            DateTime?
   event             Event            @relation(fields: [eventId], references: [id], onDelete: Cascade)
@@ -461,4 +464,11 @@ model UsageEvent {
   createdAt DateTime @default(now())
 
   @@index([type, createdAt])
+}
+
+/// Fixed-window rate limiting shared by every server instance (keys are SHA-256 hashed, no raw IPs/emails).
+model RateLimit {
+  key         String   @id
+  windowStart DateTime
+  count       Int
 }

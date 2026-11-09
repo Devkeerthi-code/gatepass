@@ -23,6 +23,8 @@ export interface PaymentProvider {
   /** False when no webhook secret is configured. */
   verifyWebhookSignature(rawBody: string, signature: string): boolean;
   testConnection(): Promise<{ ok: true } | { ok: false; message: string }>;
+  /** Full or partial refund of a captured payment. Throws PaymentProviderError on failure. */
+  refund(input: { providerPaymentId: string; amountPaise: number; notes: Record<string, string> }): Promise<{ refundId: string }>;
 }
 
 export class PaymentProviderError extends Error {

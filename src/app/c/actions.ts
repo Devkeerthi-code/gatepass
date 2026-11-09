@@ -27,7 +27,7 @@ export type HoldResponse = { ok: true; orderId: string } | { ok: false; message:
 export async function holdSeats(input: z.input<typeof holdSchema>): Promise<HoldResponse> {
   const parsed = holdSchema.safeParse(input);
   if (!parsed.success) return { ok: false, message: "Pick a ticket and quantity." };
-  if (!rateLimit(`hold:${await ip()}`, 20, 60_000)) return { ok: false, message: "Too many attempts. Wait a minute and try again." };
+  if (!(await rateLimit(`hold:${await ip()}`, 20, 60_000))) return { ok: false, message: "Too many attempts. Wait a minute and try again." };
   try {
     const res = await placeHold({ ...parsed.data, now: new Date() });
     if (!res.ok) return { ok: false, message: res.message };
@@ -51,7 +51,7 @@ export async function joinWaitlist(ticketTypeId: string, input: z.input<typeof p
   const parsed = personSchema.safeParse(input);
   if (!parsed.success) return { ok: false, message: parsed.error.issues[0]?.message ?? "Check the form." };
   const qty = Math.min(Math.max(1, Math.floor(input.qty || 1)), 6);
-  if (!rateLimit(`wl:${await ip()}`, 10, 60_000)) return { ok: false, message: "Too many attempts. Try again in a minute." };
+  if (!(await rateLimit(`wl:${await ip()}`, 10, 60_000))) return { ok: false, message: "Too many attempts. Try again in a minute." };
   const tier = await db.ticketType.findUnique({ where: { id: ticketTypeId }, include: { event: { select: { status: true } } } });
   if (!tier || tier.event.status !== "PUBLISHED") return { ok: false, message: "Ticket not found." };
   if (tier.reserved < tier.capacity) return { ok: false, message: "Seats are available right now. Just buy them." };
@@ -73,7 +73,7 @@ export async function joinWaitlist(ticketTypeId: string, input: z.input<typeof p
 export async function subscribeToDrop(ticketTypeId: string, email: string): Promise<SimpleResult> {
   const parsed = z.string().trim().toLowerCase().email().safeParse(email);
   if (!parsed.success) return { ok: false, message: "Enter a valid email." };
-  if (!rateLimit(`drop:${await ip()}`, 10, 60_000)) return { ok: false, message: "Too many attempts. Try again in a minute." };
+  if (!(await rateLimit(`drop:${await ip()}`, 10, 60_000))) return { ok: false, message: "Too many attempts. Try again in a minute." };
   const tier = await db.ticketType.findUnique({ where: { id: ticketTypeId }, select: { isDrop: true } });
   if (!tier?.isDrop) return { ok: false, message: "This ticket isn't a scheduled drop." };
   await db.dropSubscriber.upsert({
@@ -87,7 +87,7 @@ export async function subscribeToDrop(ticketTypeId: string, email: string): Prom
 export async function enterGiveaway(giveawayId: string, input: z.input<typeof personSchema>): Promise<SimpleResult> {
   const parsed = personSchema.safeParse(input);
   if (!parsed.success) return { ok: false, message: parsed.error.issues[0]?.message ?? "Check the form." };
-  if (!rateLimit(`gw:${await ip()}`, 10, 60_000)) return { ok: false, message: "Too many attempts. Try again in a minute." };
+  if (!(await rateLimit(`gw:${await ip()}`, 10, 60_000))) return { ok: false, message: "Too many attempts. Try again in a minute." };
   const giveaway = await db.giveaway.findUnique({ where: { id: giveawayId } });
   if (!giveaway || giveaway.status !== "OPEN" || giveaway.closesAt < new Date()) return { ok: false, message: "This giveaway has closed." };
   try {

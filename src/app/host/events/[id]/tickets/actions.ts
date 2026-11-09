@@ -8,6 +8,7 @@ import { rupeesToPaise } from "@/lib/money";
 import { transaction } from "@/lib/tx";
 import { ownedEvent, viewerWith } from "@/server/auth";
 import { offerWaitlist } from "@/server/inventory";
+import { emailTicketsLater } from "@/server/email";
 import { createCompOrder } from "@/server/orders";
 import type { ActionState } from "../../actions";
 
@@ -111,6 +112,7 @@ export async function issueComp(eventId: string, _prev: ActionState, form: FormD
   if (!tier) return { error: "Pick a ticket type." };
   const res = await transaction((tx) => createCompOrder(tx, { ...parsed.data, source: "COMP", now: new Date() }));
   if (!res.ok) return { error: "Not enough seats left in that ticket type." };
+  emailTicketsLater(res.orderId);
   revalidatePath(`/host/events/${eventId}/attendees`);
   return { ok: `Ticket issued. Open it from the attendee list to share the link with ${parsed.data.buyerName}.` };
 }

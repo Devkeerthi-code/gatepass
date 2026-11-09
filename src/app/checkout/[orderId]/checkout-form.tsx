@@ -36,6 +36,7 @@ export function CheckoutForm(props: Props) {
   const [pending, start] = useTransition();
   const [releasing, startRelease] = useTransition();
   const [paying, setPaying] = useState(false);
+  const [quote, setQuote] = useState<{ amountPaise: number; discountPaise: number; promoLabel: string | null } | null>(null);
   const router = useRouter();
   const toast = useToast();
   const subtotal = unitPricePaise * qty;
@@ -80,6 +81,7 @@ export function CheckoutForm(props: Props) {
       }
       if (step.kind === "FREE_DONE") return router.push(`/o/${orderId}`);
       if (step.kind === "MOCK") return router.push(`/pay/mock/${orderId}`);
+      setQuote({ amountPaise: step.amountPaise, discountPaise: step.discountPaise, promoLabel: step.promoLabel });
       setPaying(true);
       openRazorpay(step, {
         onDone: () => router.push(`/o/${orderId}`),
@@ -183,7 +185,20 @@ export function CheckoutForm(props: Props) {
           </span>
           <span className="mono">{formatPaise(subtotal)}</span>
         </div>
-        <p className="xs muted">Promo discounts show on the payment screen. Prices include all fees.</p>
+        {quote && quote.discountPaise ? (
+          <>
+            <div className="row between small">
+              <span>{quote.promoLabel ?? "Promo"}</span>
+              <span className="mono">−{formatPaise(quote.discountPaise)}</span>
+            </div>
+            <div className="row between">
+              <b>You pay</b>
+              <b className="mono">{formatPaise(quote.amountPaise)}</b>
+            </div>
+          </>
+        ) : (
+          <p className="xs muted">Promo codes and group deals are applied when you continue. Prices include all fees.</p>
+        )}
         {props.refundPolicy ? (
           <details className="faq">
             <summary>

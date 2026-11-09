@@ -13,6 +13,9 @@ import { track } from "@/server/usage";
 
 export type AuthState = { error?: string; fieldErrors?: Record<string, string[] | undefined> } | null;
 
+// bcrypt hash of a random string: compared against when the email is unknown, to equalise timing.
+const DUMMY_HASH = "$2b$11$Y1K33BS3K/DaDTke5T2fkuP9R0BUlYiN6jlEpC.QVzkumuD8NS6U2";
+
 const email = z.string().trim().toLowerCase().email("Enter a valid email address.").max(200);
 const password = z.string().min(8, "Use at least 8 characters.").max(200);
 const name = z.string().trim().min(2, "Enter your name.").max(80);
@@ -32,7 +35,7 @@ const signupSchema = z.object({
 export async function signup(_prev: AuthState, form: FormData): Promise<AuthState> {
   const parsed = signupSchema.safeParse(Object.fromEntries(form));
   if (!parsed.success) return { fieldErrors: z.flattenError(parsed.error).fieldErrors };
-  if (!rateLimit(`signup:${await clientKey()}`, 10, 60 * 60_000)) {
+  if (!(await rateLimit(`signup:${await clientKey()}`, 10, 60 * 60_000))) {
     return { error: "Too many sign-ups from this network. Try again in an hour." };
   }
   const { orgName, ...user } = parsed.data;
@@ -61,12 +64,13 @@ export async function login(_prev: AuthState, form: FormData): Promise<AuthState
   const parsed = loginSchema.safeParse(Object.fromEntries(form));
   if (!parsed.success) return { fieldErrors: z.flattenError(parsed.error).fieldErrors };
   const { email: mail, password: pw } = parsed.data;
-  if (!rateLimit(`login:${await clientKey()}:${mail}`, 8, 15 * 60_000)) {
+  if (!(await rateLimit(`login:${await clientKey()}:${mail}`, 8, 15 * 60_000))) {
     return { error: "Too many attempts. Wait 15 minutes and try again." };
   }
   const user = await db.user.findUnique({ where: { email: mail }, include: { memberships: true } });
-  // Same message either way, so the form can't be used to discover who has an account.
-  if (!user || !(await verifyPassword(pw, user.passwordHash))) return { error: "That email and password don't match." };
+  // Same message and roughly the same time either way, so the form can't reveal who has an account.
+  const valid = await verifyPassword(pw, user?.passwordHash ?? DUMMY_HASH);
+  if (!user || !valid) return { error: "That email and password don't match." };
   const membership = user.memberships.find((m) => m.role === "ADMIN") ?? user.memberships[0];
   if (!membership) return { error: "This account isn't part of any team yet. Ask your organiser for an invite." };
   await startSession(user.id, membership.orgId);

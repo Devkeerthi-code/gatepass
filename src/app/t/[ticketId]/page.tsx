@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import QRCode from "qrcode";
 import { Suspense } from "react";
 import { Icon } from "@/components/icon";
@@ -27,7 +27,8 @@ async function TicketView({ params }: { params: Promise<{ ticketId: string }> })
       checkedInBy: { select: { name: true } },
     },
   });
-  if (!ticket || ticket.order.status !== "PAID") notFound();
+  if (!ticket) notFound();
+  if (ticket.order.status !== "PAID") redirect(`/o/${ticket.order.id}`);
   const { event } = ticket;
   const code = signTicketCode(ticket.id, env().TICKET_SIGNING_SECRET);
   const qrSvg = await QRCode.toString(code, { type: "svg", margin: 1, errorCorrectionLevel: "M", color: { dark: "#16130f", light: "#ffffff" } });

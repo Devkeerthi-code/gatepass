@@ -28,6 +28,9 @@ export function createMockProvider(rootSecret: string): PaymentProvider {
     async testConnection() {
       return { ok: true };
     },
+    async refund() {
+      return { refundId: `mock_rfnd_${randomToken(12)}` };
+    },
   };
 }
 

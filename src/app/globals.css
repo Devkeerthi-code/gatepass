@@ -568,3 +568,5 @@ dialog.sheet[open] { animation: dlg var(--base) var(--spring); }
 .hero-sub { font-size: var(--t-lg); color: var(--ink-2); max-width: 42ch; line-height: 1.4; }
 .hero-art { max-width: 400px; width: 100%; justify-self: center; transform: rotate(4deg); }
 .site-foot { padding: var(--s5) var(--s4) var(--s6); border-top: 1px solid var(--line); }
+.btn-danger { --b-bg: var(--no); --b-ink: var(--on-no); --b-line: var(--no); }
+.seg-sm span { line-height: 26px; padding: 0 var(--s2); font-size: var(--t-xs); }

@@ -22,7 +22,7 @@ export async function findTickets(_prev: FindState, form: FormData): Promise<Fin
   const parsed = schema.safeParse(Object.fromEntries(form));
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Check the form." };
   const ip = (await headers()).get("x-forwarded-for")?.split(",")[0]?.trim() ?? "local";
-  if (!rateLimit(`find:${ip}`, 6, 10 * 60_000)) return { error: "Too many lookups. Try again in 10 minutes." };
+  if (!(await rateLimit(`find:${ip}`, 6, 10 * 60_000))) return { error: "Too many lookups. Try again in 10 minutes." };
   const orders = await db.order.findMany({
     where: { email: parsed.data.email, phone: parsed.data.phone, status: "PAID" },
     orderBy: { paidAt: "desc" },

@@ -2,11 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import { ConfirmButton } from "@/components/confirm-button";
 import { Icon } from "@/components/icon";
 import { db } from "@/lib/db";
 import { formatShort } from "@/lib/format";
 import { formatPaise } from "@/lib/money";
 import { requireViewer } from "@/server/auth";
+import { refund } from "./actions";
 import { CompForm } from "./comp-form";
 
 export const metadata: Metadata = { title: "Attendees" };
@@ -57,8 +59,18 @@ async function Attendees({ params, searchParams }: Props) {
                 <span>
                   <b>{r.buyerName}</b> · {r.email} · {r.phone} · {r.qty} × {r.ticketType.name}
                 </span>
-                <span className="mono xs">
-                  {formatPaise(r.amountPaise)} · {r.providerPaymentId}
+                <span className="row wrap">
+                  <span className="mono xs">
+                    {formatPaise(r.amountPaise)} · {r.providerPaymentId}
+                  </span>
+                  <ConfirmButton
+                    label={`Refund ${formatPaise(r.amountPaise)}`}
+                    title={`Refund ${r.buyerName}?`}
+                    body={<p>{formatPaise(r.amountPaise)} goes back to the original payment method through Razorpay. This can&apos;t be undone.</p>}
+                    confirmLabel="Refund now"
+                    action={refund.bind(null, event.id, r.id)}
+                    className="btn btn-sm btn-accent"
+                  />
                 </span>
               </li>
             ))}
@@ -88,6 +100,9 @@ async function Attendees({ params, searchParams }: Props) {
                   <th scope="col">Tickets</th>
                   <th scope="col">Paid</th>
                   <th scope="col">Entry</th>
+                  <th scope="col">
+                    <span className="sr-only">Actions</span>
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -121,6 +136,25 @@ async function Attendees({ params, searchParams }: Props) {
                         <span className={`chip ${inCount === o.tickets.length ? "chip-ok" : inCount ? "chip-warn" : ""}`}>
                           {inCount}/{o.tickets.length} in
                         </span>
+                      </td>
+                      <td style={{ textAlign: "right" }}>
+                        {inCount === 0 ? (
+                          <ConfirmButton
+                            label={o.amountPaise ? "Refund" : "Cancel"}
+                            title={`${o.amountPaise ? "Refund" : "Cancel"} ${o.buyerName}'s order?`}
+                            body={
+                              <p>
+                                {o.qty} × {o.ticketType.name}
+                                {o.amountPaise ? `, ${formatPaise(o.amountPaise)} back to their original payment method` : ""}. Their QR codes stop working and the seats go back on sale. This
+                                can&apos;t be undone.
+                              </p>
+                            }
+                            confirmLabel={o.amountPaise ? "Refund & cancel" : "Cancel tickets"}
+                            action={refund.bind(null, event.id, o.id)}
+                            danger
+                            className="btn btn-ghost btn-sm"
+                          />
+                        ) : null}
                       </td>
                     </tr>
                   );

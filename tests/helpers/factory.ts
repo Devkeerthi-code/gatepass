@@ -26,6 +26,7 @@ const TABLES = [
   "Organisation",
   "WebhookEvent",
   "UsageEvent",
+  "RateLimit",
 ];
 
 export async function resetDb() {

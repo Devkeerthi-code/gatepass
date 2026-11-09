@@ -19,7 +19,7 @@ const keysSchema = z.object({
 export async function saveKeys(input: z.input<typeof keysSchema>): Promise<PayActionResult> {
   const viewer = await viewerWith("payments:manage");
   if (!viewer) return { ok: false, message: "Only admins can change payments." };
-  if (!rateLimit(`keys:${viewer.orgId}`, 10, 10 * 60_000)) return { ok: false, message: "Too many attempts. Wait a few minutes." };
+  if (!(await rateLimit(`keys:${viewer.orgId}`, 10, 10 * 60_000))) return { ok: false, message: "Too many attempts. Wait a few minutes." };
   const parsed = keysSchema.safeParse(input);
   if (!parsed.success) return { ok: false, message: parsed.error.issues[0]?.message ?? "Check the keys." };
   const { mode, ...creds } = parsed.data;

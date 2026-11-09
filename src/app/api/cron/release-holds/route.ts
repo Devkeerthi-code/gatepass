@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { env } from "@/lib/env";
 import { safeEqual } from "@/lib/crypto";
+import { pruneRateLimits } from "@/lib/rate-limit";
 import { transaction } from "@/lib/tx";
 import { expireOrders, offerWaitlist } from "@/server/inventory";
 
@@ -18,5 +19,6 @@ export async function GET(request: Request) {
   let offered = 0;
   for (const w of waiting) offered += await transaction((tx) => offerWaitlist(tx, w.ticketTypeId, now));
   const sessions = await db.session.deleteMany({ where: { expiresAt: { lt: now } } });
-  return Response.json({ ok: true, released, offered, expiredSessions: sessions.count });
+  const rateLimits = await pruneRateLimits(new Date(now.getTime() - 86_400_000));
+  return Response.json({ ok: true, released, offered, expiredSessions: sessions.count, rateLimits });
 }

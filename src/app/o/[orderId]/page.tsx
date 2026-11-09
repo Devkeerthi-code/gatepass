@@ -58,6 +58,24 @@ async function Order({ params, searchParams }: Props) {
     );
   }
 
+  if (order.status === "REFUNDED") {
+    return (
+      <div className="card card-lg stack">
+        <Icon name="refresh" />
+        <h1 className="display" style={{ fontSize: "var(--t-xl)" }}>
+          This order was refunded
+        </h1>
+        <p className="small muted">
+          {order.amountPaise ? `${formatPaise(order.amountPaise)} was sent back to your original payment method${order.refundedAt ? ` on ${formatDay(order.refundedAt)}` : ""}. Banks usually take 5–7 working days.` : "These free tickets were cancelled by the organiser."}{" "}
+          The QR codes no longer work.
+        </p>
+        <Link className="btn" href={`/c/${event.slug}`}>
+          Concert page
+        </Link>
+      </div>
+    );
+  }
+
   if (order.status === "NEEDS_REFUND") {
     return (
       <div className="card card-lg stack" role="alert">

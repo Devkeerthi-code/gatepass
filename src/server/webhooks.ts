@@ -2,6 +2,7 @@ import "server-only";
 import { db } from "@/lib/db";
 import { isUniqueViolation } from "@/lib/prisma-errors";
 import { transaction } from "@/lib/tx";
+import { emailTicketsLater } from "./email";
 import { confirmPaid } from "./orders";
 import type { PaymentProvider } from "./payments/types";
 import { parseCapturedPayment } from "./payments/webhook-payload";
@@ -54,6 +55,7 @@ export async function handlePaymentWebhook(input: {
   if (outcome.status === "ISSUED") {
     const order = await db.order.findUnique({ where: { id: outcome.orderId }, select: { eventId: true } });
     track("order.paid", { eventId: order?.eventId });
+    emailTicketsLater(outcome.orderId);
   }
   // NOT_FOUND / AMOUNT_MISMATCH are acknowledged (retrying won't help) but reported in the body.
   return { status: 200, body: { ok: true, result: outcome.status.toLowerCase() } };

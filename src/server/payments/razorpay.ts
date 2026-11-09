@@ -49,6 +49,13 @@ export function createRazorpayProvider(ref: Exclude<ProviderRef, "MOCK">, creds:
     verifyWebhookSignature(rawBody, signature) {
       return isValidWebhookSignature(creds.webhookSecret, rawBody, signature);
     },
+    async refund({ providerPaymentId, amountPaise, notes }) {
+      const refund = await call<{ id: string }>(creds, `/payments/${encodeURIComponent(providerPaymentId)}/refund`, {
+        method: "POST",
+        body: JSON.stringify({ amount: amountPaise, speed: "normal", notes }),
+      });
+      return { refundId: refund.id };
+    },
     async testConnection() {
       try {
         await call(creds, "/orders?count=1");

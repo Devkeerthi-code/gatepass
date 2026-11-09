@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import { Icon } from "@/components/icon";
 import { useToast } from "@/components/toaster";
 import type { LiveCheck } from "@/server/payment-settings";
@@ -29,14 +29,22 @@ export function PaymentsPanel({
   const toast = useToast();
   const liveReady = checks.every((c) => c.done);
 
+  const liveDialog = useRef<HTMLDialogElement>(null);
+
   const pick = (mode: "MOCK" | "TEST" | "LIVE") => {
-    if (mode === "LIVE" && !window.confirm("Switch to LIVE? New checkouts will charge real money to buyers.")) return;
+    if (mode === "LIVE") return liveDialog.current?.showModal();
+    apply(mode);
+  };
+
+  const apply = (mode: "MOCK" | "TEST" | "LIVE") =>
     start(async () => {
       const res = await changeMode(mode);
       toast(res.message, { error: !res.ok });
-      if (res.ok) router.refresh();
+      if (res.ok) {
+        liveDialog.current?.close();
+        router.refresh();
+      }
     });
-  };
 
   const collecting =
     effective === "LIVE"
@@ -82,6 +90,23 @@ export function PaymentsPanel({
           ))}
         </div>
         <p className="xs muted">Razorpay Test unlocks once test keys are verified. Live unlocks when every item in the checklist is done.</p>
+        <dialog ref={liveDialog} className="sheet" aria-labelledby="live-h">
+          <div className="dlg-h">
+            <h2 id="live-h">Switch to Live payments?</h2>
+          </div>
+          <div className="dlg-b small">
+            <p>From now on, buyers are charged real money into your Razorpay account ({live.key}). Orders already in checkout keep their current mode.</p>
+          </div>
+          <div className="dlg-f">
+            <button type="button" className="btn" onClick={() => liveDialog.current?.close()} disabled={pending}>
+              Stay on {current === "TEST" ? "Test" : "Mock"}
+            </button>
+            <button type="button" className="btn btn-danger" onClick={() => apply("LIVE")} disabled={pending}>
+              {pending ? <span className="spinner" aria-hidden="true" /> : null}
+              Go live
+            </button>
+          </div>
+        </dialog>
       </div>
 
       <KeyCard mode="TEST" state={test} title="Razorpay test keys" hint="Dashboard → Account & Settings → API Keys, with Test mode on. Saving verified test keys switches new checkouts to your account automatically." />

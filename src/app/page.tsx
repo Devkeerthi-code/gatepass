@@ -3,6 +3,7 @@ import { connection } from "next/server";
 import { Suspense } from "react";
 import { FlingTicket } from "@/components/fling-ticket";
 import { Icon } from "@/components/icon";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { parseTicketStyle, TicketCard } from "@/components/ticket-card";
 import { db } from "@/lib/db";
 import { formatDay, formatTime } from "@/lib/format";
@@ -114,7 +115,10 @@ export default function Home() {
           </Suspense>
         </section>
       </main>
-      <footer className="container site-foot xs muted">GatePass · built for college crews in India · prices in ₹, times in IST</footer>
+      <footer className="container site-foot xs muted row between wrap">
+        <span>GatePass · built for college crews in India · prices in ₹, times in IST</span>
+        <ThemeToggle />
+      </footer>
     </>
   );
 }
