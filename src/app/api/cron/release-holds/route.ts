@@ -15,7 +15,11 @@ export async function GET(request: Request) {
 
   const now = new Date();
   const released = await transaction((tx) => expireOrders(tx, { now }));
-  const waiting = await db.waitlistEntry.findMany({ where: { status: "WAITING" }, distinct: ["ticketTypeId"], select: { ticketTypeId: true } });
+  const waiting = await db.waitlistEntry.findMany({
+    where: { status: "WAITING" },
+    distinct: ["ticketTypeId"],
+    select: { ticketTypeId: true },
+  });
   let offered = 0;
   for (const w of waiting) offered += await transaction((tx) => offerWaitlist(tx, w.ticketTypeId, now));
   const sessions = await db.session.deleteMany({ where: { expiresAt: { lt: now } } });

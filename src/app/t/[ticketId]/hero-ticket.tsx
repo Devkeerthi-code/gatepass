@@ -99,7 +99,7 @@ export function HeroTicket(p: Props) {
               <dd>{p.doors}</dd>
             </div>
           </dl>
-          <div className="tb-qr">
+          <div className="tb-qr" data-no-fling>
             <div className="qr" role="img" aria-label="Ticket QR code" dangerouslySetInnerHTML={{ __html: p.qrSvg }} />
             <div className="mono xs" style={{ letterSpacing: ".16em" }}>
               {p.serial}

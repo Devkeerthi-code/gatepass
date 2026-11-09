@@ -33,10 +33,7 @@ export type PromoRule = {
 
 export type PromoCheck = { ok: true } | { ok: false; reason: string };
 
-export function checkPromoEligibility(
-  promo: PromoRule,
-  ctx: { ticketTypeId: string; qty: number; email: string; now: Date },
-): PromoCheck {
+export function checkPromoEligibility(promo: PromoRule, ctx: { ticketTypeId: string; qty: number; email: string; now: Date }): PromoCheck {
   if (!promo.active) return { ok: false, reason: "This code is no longer active." };
   if (promo.startsAt && ctx.now < promo.startsAt) return { ok: false, reason: "This code isn't valid yet." };
   if (promo.endsAt && ctx.now > promo.endsAt) return { ok: false, reason: "This code has expired." };
@@ -56,11 +53,7 @@ export function checkPromoEligibility(
 }
 
 /** Discount in paise, never more than the subtotal. */
-export function promoDiscount(
-  promo: Pick<PromoRule, "kind" | "value" | "minQty">,
-  unitPaise: number,
-  qty: number,
-): number {
+export function promoDiscount(promo: Pick<PromoRule, "kind" | "value" | "minQty">, unitPaise: number, qty: number): number {
   const subtotal = unitPaise * qty;
   let discount = 0;
   if (promo.kind === "PERCENT") discount = Math.floor((subtotal * Math.min(promo.value, 100)) / 100);

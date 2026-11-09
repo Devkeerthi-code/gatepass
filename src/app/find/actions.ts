@@ -29,5 +29,7 @@ export async function findTickets(_prev: FindState, form: FormData): Promise<Fin
     take: 20,
     include: { event: { select: { name: true, startsAt: true } }, ticketType: { select: { name: true } } },
   });
-  return { orders: orders.map((o) => ({ id: o.id, event: o.event.name, type: o.ticketType.name, qty: o.qty, when: formatDay(o.event.startsAt) })) };
+  return {
+    orders: orders.map((o) => ({ id: o.id, event: o.event.name, type: o.ticketType.name, qty: o.qty, when: formatDay(o.event.startsAt) })),
+  };
 }

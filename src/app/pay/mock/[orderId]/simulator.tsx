@@ -72,7 +72,11 @@ export function MockSimulator({
             {amount}
           </p>
           <p className="small muted">{line}</p>
-          {promo ? <p className="chip chip-ok" style={{ marginTop: 8 }}>{promo} applied</p> : null}
+          {promo ? (
+            <p className="chip chip-ok" style={{ marginTop: 8 }}>
+              {promo} applied
+            </p>
+          ) : null}
         </div>
         <p className="small">
           GatePass is in <b>Mock mode</b> because no Razorpay keys are connected. Pick what the “bank” should do:
@@ -92,8 +96,8 @@ export function MockSimulator({
           </button>
         </div>
         <p className="xs muted">
-          The last option never calls the checkout callback. A signed <span className="mono">payment.captured</span> webhook arrives ~4s later (twice, like a retry) and issues the
-          ticket exactly once.
+          The last option never calls the checkout callback. A signed <span className="mono">payment.captured</span> webhook arrives ~4s
+          later (twice, like a retry) and issues the ticket exactly once.
         </p>
       </div>
       <div className="hazard" aria-hidden="true" />

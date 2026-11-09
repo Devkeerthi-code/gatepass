@@ -7,7 +7,10 @@ import { recordFailure } from "@/server/checkout";
 import { buildMockWebhook, simulateMockPayment } from "@/server/payments/mock";
 
 async function mockOrder(orderId: string) {
-  const order = await db.order.findUnique({ where: { id: orderId }, select: { status: true, provider: true, providerOrderId: true, amountPaise: true } });
+  const order = await db.order.findUnique({
+    where: { id: orderId },
+    select: { status: true, provider: true, providerOrderId: true, amountPaise: true },
+  });
   if (!order || order.provider !== "MOCK" || !order.providerOrderId || order.status !== "PENDING") return null;
   return { ...order, providerOrderId: order.providerOrderId };
 }

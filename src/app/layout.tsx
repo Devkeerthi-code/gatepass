@@ -42,6 +42,9 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       </head>
       {/* Browser extensions (e.g. Grammarly) add attributes to <body> before hydration. */}
       <body suppressHydrationWarning>
+        <a className="btn btn-ink btn-sm skip" href="#main">
+          Skip to content
+        </a>
         <Toaster>{children}</Toaster>
       </body>
     </html>

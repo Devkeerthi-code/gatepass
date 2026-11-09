@@ -38,5 +38,8 @@ export async function GET(_request: Request, { params }: { params: Promise<{ eve
     checkedInAt: t.checkedInAt?.toISOString() ?? null,
     checkedInBy: t.checkedInBy?.name ?? null,
   }));
-  return Response.json({ eventName: event.name, generatedAt: new Date().toISOString(), tickets: manifest }, { headers: { "Cache-Control": "no-store" } });
+  return Response.json(
+    { eventName: event.name, generatedAt: new Date().toISOString(), tickets: manifest },
+    { headers: { "Cache-Control": "no-store" } },
+  );
 }

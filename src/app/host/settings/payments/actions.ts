@@ -11,9 +11,15 @@ export type PayActionResult = { ok: true; message: string } | { ok: false; messa
 
 const keysSchema = z.object({
   mode: z.enum(["TEST", "LIVE"]),
-  keyId: z.string().trim().regex(/^rzp_(test|live)_[A-Za-z0-9]{8,32}$/, "That doesn't look like a Razorpay Key ID (rzp_test_… or rzp_live_…)."),
+  keyId: z
+    .string()
+    .trim()
+    .regex(/^rzp_(test|live)_[A-Za-z0-9]{8,32}$/, "That doesn't look like a Razorpay Key ID (rzp_test_… or rzp_live_…)."),
   keySecret: z.string().trim().min(10, "Paste the Key Secret shown next to the Key ID.").max(100),
-  webhookSecret: z.preprocess((v) => (v === "" ? null : v), z.string().trim().min(6, "Webhook secrets are at least 6 characters.").max(100).nullable()),
+  webhookSecret: z.preprocess(
+    (v) => (v === "" ? null : v),
+    z.string().trim().min(6, "Webhook secrets are at least 6 characters.").max(100).nullable(),
+  ),
 });
 
 export async function saveKeys(input: z.input<typeof keysSchema>): Promise<PayActionResult> {
@@ -29,7 +35,10 @@ export async function saveKeys(input: z.input<typeof keysSchema>): Promise<PayAc
   revalidatePath("/host/settings/payments");
   return {
     ok: true,
-    message: mode === "TEST" ? "Connected. New checkouts now go to your Razorpay test account." : "Live keys verified. Finish the checklist to switch on Live.",
+    message:
+      mode === "TEST"
+        ? "Connected. New checkouts now go to your Razorpay test account."
+        : "Live keys verified. Finish the checklist to switch on Live.",
   };
 }
 

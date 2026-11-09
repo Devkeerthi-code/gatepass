@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { Icon } from "@/components/icon";
 import { parseTicketStyle } from "@/components/ticket-card";
+import { accentVars } from "@/lib/accent";
 import { db } from "@/lib/db";
 import { formatDay, formatTime } from "@/lib/format";
 import { getPublicEvent } from "@/server/public-event";
@@ -41,7 +42,7 @@ async function Concert({ params, searchParams }: Props) {
   const giveaway = event.giveaways[0];
 
   return (
-    <div style={{ ["--accent" as string]: event.accentHex }}>
+    <div style={accentVars(event.accentHex)}>
       <header className="topbar">
         <Link className="brand" href="/">
           <Icon name="logo" className="brand-mark" />
@@ -49,12 +50,12 @@ async function Concert({ params, searchParams }: Props) {
         </Link>
         <span className="grow" />
         <Link className="btn btn-ghost btn-sm" href="/find">
-          Find my tickets
+          <span className="hide-sm">Find&nbsp;</span>my tickets
         </Link>
         <ShareButton />
       </header>
 
-      <main className="container page">
+      <main id="main" className="container page">
         <section className="a-poster" aria-labelledby="ev-title">
           <div className={`poster ${event.posterData ? "has-image" : ""}`} style={{ ["--pc" as string]: event.accentHex }}>
             {event.posterData ? (
@@ -68,7 +69,7 @@ async function Concert({ params, searchParams }: Props) {
             <PosterTitle name={event.name} />
             {headliner ? (
               <div className="lineup-poster" aria-label="Lineup">
-                <div className="head">{headliner.name}</div>
+                <div className="headliner">{headliner.name}</div>
                 {rest.length ? (
                   <div className="rest">
                     {rest.map((a) => (
@@ -168,7 +169,11 @@ async function Concert({ params, searchParams }: Props) {
                     </li>
                   ))}
               </ol>
-              {event.isDemo ? <p className="xs muted" style={{ marginTop: 8 }}>All artist names are fictional demo content.</p> : null}
+              {event.isDemo ? (
+                <p className="xs muted" style={{ marginTop: 8 }}>
+                  All artist names are fictional demo content.
+                </p>
+              ) : null}
             </section>
           ) : null}
 
@@ -183,7 +188,8 @@ async function Concert({ params, searchParams }: Props) {
             </div>
             <p className="small muted">
               {event.venue}
-              {event.venueAddress ? `, ${event.venueAddress}` : ""}. Show the QR on your phone at the gate. Turn your brightness up. One scan per ticket.
+              {event.venueAddress ? `, ${event.venueAddress}` : ""}. Show the QR on your phone at the gate. Turn your brightness up. One
+              scan per ticket.
             </p>
           </section>
 
@@ -233,7 +239,7 @@ async function Concert({ params, searchParams }: Props) {
 
 function ConcertSkeleton() {
   return (
-    <main className="container page" aria-busy="true">
+    <main id="main" className="container page" aria-busy="true">
       <div className="sk" style={{ height: 440, borderRadius: 18 }} />
       <div className="stack">
         {[0, 1, 2].map((i) => (

@@ -47,7 +47,15 @@ export function TeamPanel({ me, members, invites }: { me: string; members: Membe
         <div className="row wrap" style={{ alignItems: "end" }}>
           <div className="field grow">
             <label htmlFor="inv-email">Email</label>
-            <input id="inv-email" className="input" type="email" required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="ravi@college.edu" />
+            <input
+              id="inv-email"
+              className="input"
+              type="email"
+              required
+              value={form.email}
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
+              placeholder="ravi@college.edu"
+            />
           </div>
           <div className="seg" role="radiogroup" aria-label="Role">
             {(["VOLUNTEER", "ADMIN"] as const).map((r) => (
@@ -68,7 +76,12 @@ export function TeamPanel({ me, members, invites }: { me: string; members: Membe
               type="button"
               className="btn"
               aria-label="Copy invite link"
-              onClick={() => navigator.clipboard.writeText(link).then(() => toast("Copied"), () => toast("Couldn't copy", { error: true }))}
+              onClick={() =>
+                navigator.clipboard.writeText(link).then(
+                  () => toast("Copied"),
+                  () => toast("Couldn't copy", { error: true }),
+                )
+              }
             >
               <Icon name="copy" />
             </button>
@@ -94,7 +107,11 @@ export function TeamPanel({ me, members, invites }: { me: string; members: Membe
               <tr key={m.id}>
                 <td>
                   <b>{m.name}</b>
-                  {m.userId === me ? <span className="chip" style={{ marginLeft: 6 }}>You</span> : null}
+                  {m.userId === me ? (
+                    <span className="chip" style={{ marginLeft: 6 }}>
+                      You
+                    </span>
+                  ) : null}
                   <div className="xs muted">{m.email}</div>
                 </td>
                 <td>
@@ -135,7 +152,8 @@ export function TeamPanel({ me, members, invites }: { me: string; members: Membe
             {invites.map((i) => (
               <li key={i.id} className="row between wrap">
                 <span>
-                  <b>{i.email}</b> · {i.role === "ADMIN" ? "Admin" : "Gate crew"} <span className="xs muted">expires {formatShort(i.expiresAt)}</span>
+                  <b>{i.email}</b> · {i.role === "ADMIN" ? "Admin" : "Gate crew"}{" "}
+                  <span className="xs muted">expires {formatShort(i.expiresAt)}</span>
                 </span>
                 <button className="btn btn-ghost btn-sm" type="button" disabled={pending} onClick={() => run(() => revokeInvite(i.id))}>
                   Revoke

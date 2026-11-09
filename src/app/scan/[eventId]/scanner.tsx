@@ -44,6 +44,7 @@ export function Scanner({ eventId, eventName, volunteerName }: { eventId: string
   const scanner = useRef<QrScannerType | null>(null);
   const sheet = useRef<HTMLDialogElement>(null);
   const stub = useRef<HTMLDivElement>(null);
+  const searchInput = useRef<HTMLInputElement>(null);
   const busy = useRef(false);
   const lastCode = useRef<{ code: string; at: number } | null>(null);
   const toast = useToast();
@@ -74,7 +75,10 @@ export function Scanner({ eventId, eventName, volunteerName }: { eventId: string
       const results = await postScans(eventId, pending);
       await dequeue(results.map((r) => r.clientScanId));
       for (const r of results) {
-        if (r.result === "DUPLICATE") toast(`Sync conflict: ${r.ticket.holderName} was already let in at ${formatTime(r.checkedInAt)} by ${r.checkedInBy}.`, { error: true });
+        if (r.result === "DUPLICATE")
+          toast(`Sync conflict: ${r.ticket.holderName} was already let in at ${formatTime(r.checkedInAt)} by ${r.checkedInBy}.`, {
+            error: true,
+          });
       }
       toast(`Synced ${results.length} offline scan${results.length > 1 ? "s" : ""}`);
       setOnline(true);
@@ -129,7 +133,8 @@ export function Scanner({ eventId, eventName, volunteerName }: { eventId: string
       const ticketId = scan.ticketId ?? (scan.code ? parseTicketCode(scan.code)?.ticketId : undefined);
       const t = tickets.find((x) => x.id === ticketId);
       if (!t) return show({ kind: "INVALID", reason: "Not on this concert's guest list." });
-      if (t.checkedInAt) return show({ kind: "DUPLICATE", name: t.holderName, at: formatTime(t.checkedInAt), by: t.checkedInBy ?? "a volunteer" });
+      if (t.checkedInAt)
+        return show({ kind: "DUPLICATE", name: t.holderName, at: formatTime(t.checkedInAt), by: t.checkedInBy ?? "a volunteer" });
       await enqueue(eventId, { ...scan, ticketId: t.id, code: undefined });
       await markLocalCheckIn(eventId, t.id);
       await refreshLocal();
@@ -229,7 +234,7 @@ export function Scanner({ eventId, eventName, volunteerName }: { eventId: string
   }, [tickets]);
 
   return (
-    <main className="scanner" aria-labelledby="sc-h">
+    <main id="main" className="scanner" aria-labelledby="sc-h">
       <header className="s-top">
         <div className="who">
           <h1 id="sc-h" style={{ fontSize: "var(--t-md)" }}>
@@ -271,22 +276,49 @@ export function Scanner({ eventId, eventName, volunteerName }: { eventId: string
           <span>{tickets.length} tickets cached for offline</span>
         </div>
         <div className="s-acts">
-          <button className="btn btn-ink btn-lg" type="button" onClick={() => sheet.current?.showModal()}>
+          <button
+            className="btn btn-ink btn-lg"
+            type="button"
+            onClick={() => {
+              sheet.current?.showModal();
+              searchInput.current?.focus();
+            }}
+          >
             <Icon name="search" /> Find by name or phone
           </button>
-          <button className="btn btn-lg" type="button" onClick={toggleTorch} disabled={!torch.available} aria-pressed={torch.on} aria-label="Torch">
+          <button
+            className="btn btn-lg"
+            type="button"
+            onClick={toggleTorch}
+            disabled={!torch.available}
+            aria-pressed={torch.on}
+            aria-label="Torch"
+          >
             <Icon name="sun" />
           </button>
         </div>
       </footer>
 
-      <button type="button" className={`result ${shown ? (shown.kind === "OK" ? "ok" : shown.kind === "DUPLICATE" ? "used" : "no") : ""}`} hidden={!shown} onClick={() => setShown(null)} aria-live="assertive">
+      <button
+        type="button"
+        className={`result ${shown ? (shown.kind === "OK" ? "ok" : shown.kind === "DUPLICATE" ? "used" : "no") : ""}`}
+        hidden={!shown}
+        onClick={() => setShown(null)}
+      >
         {shown ? (
           <div className="inner">
             <span className="big-ic">
               <Icon name={shown.kind === "OK" ? "check" : shown.kind === "DUPLICATE" ? "clock" : "x"} />
             </span>
-            <span className="verdict">{shown.kind === "OK" ? (shown.admits > 1 ? `Admit ${shown.admits}` : "Valid") : shown.kind === "DUPLICATE" ? "Already in" : "Not valid"}</span>
+            <span className="verdict">
+              {shown.kind === "OK"
+                ? shown.admits > 1
+                  ? `Admit ${shown.admits}`
+                  : "Valid"
+                : shown.kind === "DUPLICATE"
+                  ? "Already in"
+                  : "Not valid"}
+            </span>
             {shown.kind === "OK" ? (
               <>
                 <span className="r-who">{shown.name}</span>
@@ -314,6 +346,15 @@ export function Scanner({ eventId, eventName, volunteerName }: { eventId: string
           </span>
         </span>
       </button>
+      <p className="sr-only" role="status" aria-live="assertive">
+        {shown
+          ? shown.kind === "OK"
+            ? `Valid. ${shown.name}, ${shown.type}.`
+            : shown.kind === "DUPLICATE"
+              ? `Already in. ${shown.name}, checked in at ${shown.at} by ${shown.by}.`
+              : `Not valid. ${shown.reason}`
+          : ""}
+      </p>
       <div ref={stub} className="flystub" aria-hidden="true" style={{ visibility: "hidden" }}>
         <div className="tkt">
           <div className="tk-stub" style={{ minWidth: 120 }}>
@@ -333,10 +374,20 @@ export function Scanner({ eventId, eventName, volunteerName }: { eventId: string
           <label className="sr-only" htmlFor="q">
             Name, last 4 digits of phone, or ticket serial
           </label>
-          <input className="input" id="q" placeholder="Name, last 4 digits of phone, or serial" autoComplete="off" value={query} onChange={(e) => setQuery(e.target.value)} />
+          <input
+            ref={searchInput}
+            className="input"
+            id="q"
+            placeholder="Name, last 4 digits of phone, or serial"
+            autoComplete="off"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
         </div>
         <ul className="scan-list" aria-live="polite">
-          {query.trim().length >= 2 && results.length === 0 ? <li className="scan-empty">No match. Check the spelling, or try the last 4 digits of their phone.</li> : null}
+          {query.trim().length >= 2 && results.length === 0 ? (
+            <li className="scan-empty">No match. Check the spelling, or try the last 4 digits of their phone.</li>
+          ) : null}
           {results.map((t) => (
             <li key={t.id}>
               <div>

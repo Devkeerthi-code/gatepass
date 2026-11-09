@@ -5,7 +5,11 @@ import { db } from "@/lib/db";
 import { isUniqueViolation } from "@/lib/prisma-errors";
 
 function referralCode(name: string): string {
-  const base = name.replace(/[^A-Za-z]/g, "").slice(0, 6).toUpperCase() || "FAN";
+  const base =
+    name
+      .replace(/[^A-Za-z]/g, "")
+      .slice(0, 6)
+      .toUpperCase() || "FAN";
   return `${base}${randomBytes(2).toString("hex").toUpperCase()}`;
 }
 
@@ -22,7 +26,12 @@ export async function getReferral(ticketId: string): Promise<{ path: string; sol
   for (let attempt = 0; !link && attempt < 3; attempt++) {
     try {
       link = await db.referralLink.create({
-        data: { eventId: ticket.event.id, code: referralCode(ticket.order.buyerName), ownerName: ticket.order.buyerName, ownerEmail: ticket.order.email },
+        data: {
+          eventId: ticket.event.id,
+          code: referralCode(ticket.order.buyerName),
+          ownerName: ticket.order.buyerName,
+          ownerEmail: ticket.order.email,
+        },
       });
     } catch (err) {
       if (!isUniqueViolation(err)) throw err;

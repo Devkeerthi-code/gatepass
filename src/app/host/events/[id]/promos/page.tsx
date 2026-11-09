@@ -14,17 +14,28 @@ async function Promos({ params }: { params: Promise<{ id: string }> }) {
   const event = await db.event.findFirst({
     where: { id, orgId: viewer.orgId },
     include: {
-      ticketTypes: { orderBy: { sortOrder: "asc" }, select: { id: true, name: true, isDrop: true, salesStart: true, _count: { select: { dropAlerts: true } } } },
+      ticketTypes: {
+        orderBy: { sortOrder: "asc" },
+        select: { id: true, name: true, isDrop: true, salesStart: true, _count: { select: { dropAlerts: true } } },
+      },
       promos: { orderBy: { createdAt: "desc" } },
       giveaways: {
         orderBy: { createdAt: "desc" },
-        include: { ticketType: { select: { name: true } }, entries: { where: { isWinner: true }, select: { name: true, orderId: true } }, _count: { select: { entries: true } } },
+        include: {
+          ticketType: { select: { name: true } },
+          entries: { where: { isWinner: true }, select: { name: true, orderId: true } },
+          _count: { select: { entries: true } },
+        },
       },
       referrals: { include: { orders: { where: { status: "PAID" }, select: { qty: true } } } },
     },
   });
   if (!event) notFound();
-  const waitlist = await db.waitlistEntry.groupBy({ by: ["ticketTypeId", "status"], where: { ticketType: { eventId: event.id } }, _count: { _all: true } });
+  const waitlist = await db.waitlistEntry.groupBy({
+    by: ["ticketTypeId", "status"],
+    where: { ticketType: { eventId: event.id } },
+    _count: { _all: true },
+  });
 
   const tierName = new Map(event.ticketTypes.map((t) => [t.id, t.name]));
   return (
@@ -68,7 +79,9 @@ async function Promos({ params }: { params: Promise<{ id: string }> }) {
           seed: g.status === "DRAWN" ? g.seed : null,
           winners: g.entries.map((e) => e.name),
         }))}
-        drops={event.ticketTypes.filter((t) => t.isDrop).map((t) => ({ id: t.id, name: t.name, at: t.salesStart?.toISOString() ?? null, subscribers: t._count.dropAlerts }))}
+        drops={event.ticketTypes
+          .filter((t) => t.isDrop)
+          .map((t) => ({ id: t.id, name: t.name, at: t.salesStart?.toISOString() ?? null, subscribers: t._count.dropAlerts }))}
         referrals={event.referrals
           .map((r) => ({ code: r.code, name: r.ownerName, sold: r.orders.reduce((a, o) => a + o.qty, 0), rewardAfter: r.rewardAfter }))
           .sort((a, b) => b.sold - a.sold)

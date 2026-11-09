@@ -7,7 +7,7 @@ export const metadata: Metadata = { title: "Find my tickets", robots: { index: f
 
 export default function FindPage() {
   return (
-    <main className="container narrow stack">
+    <main id="main" className="container narrow stack">
       <Link className="brand" href="/">
         <Icon name="logo" className="brand-mark" />
         GatePass

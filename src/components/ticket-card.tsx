@@ -27,6 +27,7 @@ export function TicketCard({
   kicker,
   price,
   priceNote,
+  priceNoteHot = false,
   perks,
   serial,
   stock = "paper",
@@ -39,6 +40,7 @@ export function TicketCard({
   kicker: string;
   price: string;
   priceNote?: string;
+  priceNoteHot?: boolean;
   perks?: string | null;
   serial?: string;
   stock?: TicketStock;
@@ -60,7 +62,7 @@ export function TicketCard({
       </div>
       <div className="tk-stub">
         <div className="tk-price">{price}</div>
-        {priceNote ? <div className="tk-kicker">{priceNote}</div> : null}
+        {priceNote ? <div className={`tk-kicker ${priceNoteHot ? "hot" : ""}`}>{priceNote}</div> : null}
         {serial ? <div className="tk-serial">{serial}</div> : null}
       </div>
       {stamp ? (

@@ -15,8 +15,13 @@ async function Waitlist({ params }: { params: Promise<{ token: string }> }) {
   if (!entry) notFound();
   // Reading the waitlist releases expired holds, which may turn into an offer for this person.
   await transaction((tx) => refreshTicketType(tx, entry.ticketTypeId, new Date()));
-  const w = await db.waitlistEntry.findUniqueOrThrow({ where: { token }, include: { ticketType: { include: { event: { select: { name: true, slug: true } } } } } });
-  const ahead = await db.waitlistEntry.count({ where: { ticketTypeId: w.ticketTypeId, status: "WAITING", createdAt: { lt: w.createdAt } } });
+  const w = await db.waitlistEntry.findUniqueOrThrow({
+    where: { token },
+    include: { ticketType: { include: { event: { select: { name: true, slug: true } } } } },
+  });
+  const ahead = await db.waitlistEntry.count({
+    where: { ticketTypeId: w.ticketTypeId, status: "WAITING", createdAt: { lt: w.createdAt } },
+  });
   const event = w.ticketType.event;
 
   return (
@@ -29,7 +34,10 @@ async function Waitlist({ params }: { params: Promise<{ token: string }> }) {
           <h1 className="display" style={{ fontSize: "var(--t-2xl)" }}>
             You&apos;re #{ahead + 1}
           </h1>
-          <p className="small muted">When a hold expires or the host adds seats, the first person waiting gets them for 15 minutes. Check back here; this page updates on every visit.</p>
+          <p className="small muted">
+            When a hold expires or the host adds seats, the first person waiting gets them for 15 minutes. Check back here; this page
+            updates on every visit.
+          </p>
         </>
       ) : w.status === "OFFERED" && w.offerOrderId && w.offerExpiresAt && w.offerExpiresAt > new Date() ? (
         <>
@@ -69,7 +77,7 @@ async function Waitlist({ params }: { params: Promise<{ token: string }> }) {
 
 export default function WaitlistPage({ params }: { params: Promise<{ token: string }> }) {
   return (
-    <main className="container narrow">
+    <main id="main" className="container narrow">
       <Suspense fallback={<div className="sk" style={{ height: 240, borderRadius: 18 }} />}>
         <Waitlist params={params} />
       </Suspense>

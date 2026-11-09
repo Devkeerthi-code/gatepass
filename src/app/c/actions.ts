@@ -27,7 +27,8 @@ export type HoldResponse = { ok: true; orderId: string } | { ok: false; message:
 export async function holdSeats(input: z.input<typeof holdSchema>): Promise<HoldResponse> {
   const parsed = holdSchema.safeParse(input);
   if (!parsed.success) return { ok: false, message: "Pick a ticket and quantity." };
-  if (!(await rateLimit(`hold:${await ip()}`, 20, 60_000))) return { ok: false, message: "Too many attempts. Wait a minute and try again." };
+  if (!(await rateLimit(`hold:${await ip()}`, 20, 60_000)))
+    return { ok: false, message: "Too many attempts. Wait a minute and try again." };
   try {
     const res = await placeHold({ ...parsed.data, now: new Date() });
     if (!res.ok) return { ok: false, message: res.message };
@@ -42,7 +43,10 @@ export async function holdSeats(input: z.input<typeof holdSchema>): Promise<Hold
 const personSchema = z.object({
   name: z.string().trim().min(2, "Enter your name.").max(80),
   email: z.string().trim().toLowerCase().email("Enter a valid email."),
-  phone: z.string().trim().regex(/^[6-9]\d{9}$/, "Enter a 10-digit Indian mobile number."),
+  phone: z
+    .string()
+    .trim()
+    .regex(/^[6-9]\d{9}$/, "Enter a 10-digit Indian mobile number."),
 });
 
 export type SimpleResult = { ok: true; message: string; link?: string } | { ok: false; message: string };
@@ -81,7 +85,10 @@ export async function subscribeToDrop(ticketTypeId: string, email: string): Prom
     create: { ticketTypeId, email: parsed.data },
     update: {},
   });
-  return { ok: true, message: "Saved. The host gets your email for the drop reminder, and the countdown on this page shows the exact time." };
+  return {
+    ok: true,
+    message: "Saved. The host gets your email for the drop reminder, and the countdown on this page shows the exact time.",
+  };
 }
 
 export async function enterGiveaway(giveawayId: string, input: z.input<typeof personSchema>): Promise<SimpleResult> {

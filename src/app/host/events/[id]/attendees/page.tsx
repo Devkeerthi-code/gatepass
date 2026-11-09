@@ -18,11 +18,20 @@ type Props = { params: Promise<{ id: string }>; searchParams: Promise<{ q?: stri
 async function Attendees({ params, searchParams }: Props) {
   const [{ id }, { q }] = await Promise.all([params, searchParams]);
   const viewer = await requireViewer("attendees:view");
-  const event = await db.event.findFirst({ where: { id, orgId: viewer.orgId }, include: { ticketTypes: { orderBy: { sortOrder: "asc" }, select: { id: true, name: true } } } });
+  const event = await db.event.findFirst({
+    where: { id, orgId: viewer.orgId },
+    include: { ticketTypes: { orderBy: { sortOrder: "asc" }, select: { id: true, name: true } } },
+  });
   if (!event) notFound();
   const query = q?.trim() ?? "";
   const search = query
-    ? { OR: [{ buyerName: { contains: query, mode: "insensitive" as const } }, { email: { contains: query, mode: "insensitive" as const } }, { phone: { contains: query } }] }
+    ? {
+        OR: [
+          { buyerName: { contains: query, mode: "insensitive" as const } },
+          { email: { contains: query, mode: "insensitive" as const } },
+          { phone: { contains: query } },
+        ],
+      }
     : {};
 
   const [orders, refunds] = await Promise.all([
@@ -30,7 +39,11 @@ async function Attendees({ params, searchParams }: Props) {
       where: { eventId: event.id, status: "PAID", ...search },
       orderBy: { paidAt: "desc" },
       take: 200,
-      include: { ticketType: { select: { name: true } }, tickets: { select: { id: true, serial: true, checkedInAt: true }, orderBy: { seq: "asc" } }, promo: { select: { code: true } } },
+      include: {
+        ticketType: { select: { name: true } },
+        tickets: { select: { id: true, serial: true, checkedInAt: true }, orderBy: { seq: "asc" } },
+        promo: { select: { code: true } },
+      },
     }),
     db.order.findMany({ where: { eventId: event.id, status: "NEEDS_REFUND" }, include: { ticketType: { select: { name: true } } } }),
   ]);
@@ -52,7 +65,10 @@ async function Attendees({ params, searchParams }: Props) {
       {refunds.length ? (
         <div className="card stack notice-no" style={{ marginBottom: 16 }}>
           <h2>Needs refund ({refunds.length})</h2>
-          <p className="small muted">These buyers paid after their hold expired and the tier had sold out, so no ticket was issued. Refund them from your Razorpay dashboard using the payment ID.</p>
+          <p className="small muted">
+            These buyers paid after their hold expired and the tier had sold out, so no ticket was issued. Refund them from your Razorpay
+            dashboard using the payment ID.
+          </p>
           <ul className="stack" role="list" style={{ listStyle: "none", padding: 0 }}>
             {refunds.map((r) => (
               <li key={r.id} className="row between wrap small">
@@ -66,7 +82,11 @@ async function Attendees({ params, searchParams }: Props) {
                   <ConfirmButton
                     label={`Refund ${formatPaise(r.amountPaise)}`}
                     title={`Refund ${r.buyerName}?`}
-                    body={<p>{formatPaise(r.amountPaise)} goes back to the original payment method through Razorpay. This can&apos;t be undone.</p>}
+                    body={
+                      <p>
+                        {formatPaise(r.amountPaise)} goes back to the original payment method through Razorpay. This can&apos;t be undone.
+                      </p>
+                    }
                     confirmLabel="Refund now"
                     action={refund.bind(null, event.id, r.id)}
                     className="btn btn-sm btn-accent"
@@ -90,7 +110,9 @@ async function Attendees({ params, searchParams }: Props) {
             </button>
           </form>
           {orders.length === 0 ? (
-            <p className="small muted">{query ? `No one matches “${query}”.` : "No tickets sold yet. Share your concert link to get going."}</p>
+            <p className="small muted">
+              {query ? `No one matches “${query}”.` : "No tickets sold yet. Share your concert link to get going."}
+            </p>
           ) : (
             <table className="table">
               <caption className="sr-only">Paid orders</caption>
@@ -128,7 +150,13 @@ async function Attendees({ params, searchParams }: Props) {
                         </div>
                       </td>
                       <td className="mono small">
-                        {o.amountPaise ? formatPaise(o.amountPaise) : o.source === "COMP" ? "Guest" : o.source === "GIVEAWAY" ? "Giveaway" : "Free"}
+                        {o.amountPaise
+                          ? formatPaise(o.amountPaise)
+                          : o.source === "COMP"
+                            ? "Guest"
+                            : o.source === "GIVEAWAY"
+                              ? "Giveaway"
+                              : "Free"}
                         {o.promo ? <div className="xs muted">{o.promo.code}</div> : null}
                         <div className="xs muted">{o.paidAt ? formatShort(o.paidAt) : ""}</div>
                       </td>
@@ -145,8 +173,8 @@ async function Attendees({ params, searchParams }: Props) {
                             body={
                               <p>
                                 {o.qty} × {o.ticketType.name}
-                                {o.amountPaise ? `, ${formatPaise(o.amountPaise)} back to their original payment method` : ""}. Their QR codes stop working and the seats go back on sale. This
-                                can&apos;t be undone.
+                                {o.amountPaise ? `, ${formatPaise(o.amountPaise)} back to their original payment method` : ""}. Their QR
+                                codes stop working and the seats go back on sale. This can&apos;t be undone.
                               </p>
                             }
                             confirmLabel={o.amountPaise ? "Refund & cancel" : "Cancel tickets"}

@@ -48,7 +48,7 @@ TODO: add screenshots to `docs/` (concert page, checkout, ticket, scanner result
 - Live dashboard: people sold, test revenue, check-ins vs sold, sold per ticket type, entries per 15 minutes, and the latest scans.
 - Attendee search, guest-list (comp) tickets, a "needs refund" list, and CSV export.
 - Team: invite volunteers or admins with a one-time link, change roles, remove people (they are signed out immediately).
-- **Payments settings:** paste your Razorpay Key ID and Secret, press *Test connection*, and new checkouts go to your Razorpay account. Three modes:
+- **Payments settings:** paste your Razorpay Key ID and Secret, press _Test connection_, and new checkouts go to your Razorpay account. Three modes:
   - **Mock:** default, no keys needed.
   - **Razorpay Test:** unlocks once your test keys are verified.
   - **Live:** locked behind a readiness checklist (verified live keys, webhook secret, a received webhook, HTTPS, refund policies).

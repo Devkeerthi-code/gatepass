@@ -13,7 +13,15 @@ async function setup() {
   const { org, admin, volunteer } = await makeOrg();
   const { event, ticketType } = await makeEvent(org.id, { capacity: 10 });
   const comp = await transaction((tx) =>
-    createCompOrder(tx, { ticketTypeId: ticketType.id, qty: 1, buyerName: "Kiran", email: "k@x.in", phone: "9000000000", source: "COMP", now: new Date() }),
+    createCompOrder(tx, {
+      ticketTypeId: ticketType.id,
+      qty: 1,
+      buyerName: "Kiran",
+      email: "k@x.in",
+      phone: "9000000000",
+      source: "COMP",
+      now: new Date(),
+    }),
   );
   if (!comp.ok) throw new Error("comp failed");
   const ticket = await db.ticket.findFirstOrThrow({ where: { orderId: comp.orderId } });

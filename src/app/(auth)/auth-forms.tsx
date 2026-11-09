@@ -57,6 +57,9 @@ export function LoginForm() {
       <p className="small muted">
         New here? <Link href="/signup">Create a host account</Link>
       </p>
+      <p className="small muted">
+        Bought a ticket? <Link href="/find">Find it here</Link>. Buyers don&apos;t need an account.
+      </p>
     </form>
   );
 }

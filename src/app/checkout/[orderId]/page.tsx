@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 import { Icon } from "@/components/icon";
+import { accentVars } from "@/lib/accent";
 import { db } from "@/lib/db";
 import { formatDay, formatTime } from "@/lib/format";
 import { providerForOrg } from "@/server/payments/resolve";
@@ -25,7 +26,7 @@ async function Checkout({ params }: { params: Promise<{ orderId: string }> }) {
   const event = order.event;
 
   return (
-    <main className="checkout container" style={{ ["--accent" as string]: event.accentHex }}>
+    <main id="main" className="checkout container" style={accentVars(event.accentHex)}>
       <div className="stack">
         <Link className="btn btn-ghost btn-sm" href={`/c/${event.slug}`} style={{ justifySelf: "start" }}>
           <Icon name="arrow-left" small /> {event.name}
@@ -57,7 +58,13 @@ async function Checkout({ params }: { params: Promise<{ orderId: string }> }) {
 
 export default function CheckoutPage({ params }: { params: Promise<{ orderId: string }> }) {
   return (
-    <Suspense fallback={<main className="checkout container"><div className="sk" style={{ height: 480, borderRadius: 18 }} /></main>}>
+    <Suspense
+      fallback={
+        <main id="main" className="checkout container">
+          <div className="sk" style={{ height: 480, borderRadius: 18 }} />
+        </main>
+      }
+    >
       <Checkout params={params} />
     </Suspense>
   );

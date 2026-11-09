@@ -10,7 +10,10 @@ const scanSchema = z
   .object({
     clientScanId: z.string().uuid(),
     code: z.string().max(200).optional(),
-    ticketId: z.string().regex(/^[A-Za-z0-9_-]{22}$/).optional(),
+    ticketId: z
+      .string()
+      .regex(/^[A-Za-z0-9_-]{22}$/)
+      .optional(),
     scannedAt: z.coerce.date(),
   })
   .refine((s) => !!s.code !== !!s.ticketId, "Send exactly one of code or ticketId");

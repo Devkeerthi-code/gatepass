@@ -4,8 +4,8 @@ import { openDB, type DBSchema, type IDBPDatabase } from "idb";
 import type { ManifestTicket, QueuedScan } from "@/lib/scan-types";
 
 interface ScanDB extends DBSchema {
-  tickets: { key: string; value: ManifestTicket & { eventId: string } ; indexes: { byEvent: string } };
-  queue: { key: string; value: QueuedScan & { eventId: string } ; indexes: { byEvent: string } };
+  tickets: { key: string; value: ManifestTicket & { eventId: string }; indexes: { byEvent: string } };
+  queue: { key: string; value: QueuedScan & { eventId: string }; indexes: { byEvent: string } };
   meta: { key: string; value: { key: string; value: string } };
 }
 
@@ -47,7 +47,8 @@ export async function loadManifest(eventId: string): Promise<{ tickets: Manifest
 export async function markLocalCheckIn(eventId: string, ticketId: string): Promise<void> {
   const db = await database();
   const t = await db.get("tickets", ticketId);
-  if (t && t.eventId === eventId) await db.put("tickets", { ...t, checkedInAt: new Date().toISOString(), checkedInBy: "this phone (syncing)" });
+  if (t && t.eventId === eventId)
+    await db.put("tickets", { ...t, checkedInAt: new Date().toISOString(), checkedInBy: "this phone (syncing)" });
 }
 
 export async function enqueue(eventId: string, scan: QueuedScan): Promise<void> {

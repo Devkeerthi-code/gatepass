@@ -23,7 +23,10 @@ export type PublicTier = {
   locked: boolean;
 };
 
-function tierState(t: { capacity: number; reserved: number; salesStart: Date | null; salesEnd: Date | null; isDrop: boolean }, now: Date): TierState {
+function tierState(
+  t: { capacity: number; reserved: number; salesStart: Date | null; salesEnd: Date | null; isDrop: boolean },
+  now: Date,
+): TierState {
   if (t.salesEnd && now > t.salesEnd) return "ENDED";
   if (t.salesStart && now < t.salesStart) return t.isDrop ? "DROP" : "NOT_YET";
   if (t.reserved >= t.capacity) return "SOLD_OUT";
@@ -56,7 +59,12 @@ export async function getPublicEvent(slug: string, accessCode: string | null) {
       artists: { orderBy: { sortOrder: "asc" } },
       faqs: { orderBy: { sortOrder: "asc" } },
       ticketTypes: { orderBy: { sortOrder: "asc" }, include: { priceSteps: true } },
-      giveaways: { where: { status: "OPEN", closesAt: { gt: now } }, orderBy: { closesAt: "asc" }, take: 1, include: { ticketType: { select: { name: true } }, _count: { select: { entries: true } } } },
+      giveaways: {
+        where: { status: "OPEN", closesAt: { gt: now } },
+        orderBy: { closesAt: "asc" },
+        take: 1,
+        include: { ticketType: { select: { name: true } }, _count: { select: { entries: true } } },
+      },
     },
   });
 

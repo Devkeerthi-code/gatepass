@@ -9,7 +9,10 @@ import { TierBoard } from "./tier-board";
 
 export const metadata: Metadata = { title: "Tickets" };
 
-function saleState(t: { reserved: number; capacity: number; salesStart: Date | null; salesEnd: Date | null; isDrop: boolean }, now: Date): string {
+function saleState(
+  t: { reserved: number; capacity: number; salesStart: Date | null; salesEnd: Date | null; isDrop: boolean },
+  now: Date,
+): string {
   if (t.reserved >= t.capacity) return "Sold out";
   if (t.salesEnd && t.salesEnd < now) return "Closed";
   if (t.salesStart && t.salesStart > now) return t.isDrop ? "Drop scheduled" : "Not on sale yet";
@@ -21,7 +24,12 @@ async function Tiers({ params }: { params: Promise<{ id: string }> }) {
   const viewer = await requireViewer("event:manage");
   const event = await db.event.findFirst({
     where: { id, orgId: viewer.orgId },
-    include: { ticketTypes: { orderBy: { sortOrder: "asc" }, include: { priceSteps: { orderBy: { afterSold: "asc" } }, _count: { select: { waitlist: true, dropAlerts: true } } } } },
+    include: {
+      ticketTypes: {
+        orderBy: { sortOrder: "asc" },
+        include: { priceSteps: { orderBy: { afterSold: "asc" } }, _count: { select: { waitlist: true, dropAlerts: true } } },
+      },
+    },
   });
   if (!event) notFound();
   const now = new Date();

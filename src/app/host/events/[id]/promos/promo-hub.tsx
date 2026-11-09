@@ -26,7 +26,18 @@ type Promo = {
   endsAt: string | null;
   tiers: string[];
 };
-type Giveaway = { id: string; title: string; prize: string; closesAt: string; winnersCount: number; entries: number; status: "OPEN" | "DRAWN"; seedHash: string; seed: string | null; winners: string[] };
+type Giveaway = {
+  id: string;
+  title: string;
+  prize: string;
+  closesAt: string;
+  winnersCount: number;
+  entries: number;
+  status: "OPEN" | "DRAWN";
+  seedHash: string;
+  seed: string | null;
+  winners: string[];
+};
 type Props = {
   eventId: string;
   tiers: { id: string; name: string }[];
@@ -42,7 +53,11 @@ type Creator = "CODE" | "HAPPY_HOUR" | "GROUP" | "GIVEAWAY" | null;
 function describe(p: Promo): string {
   if (p.kind === "GROUP_FREE") return `Buy ${p.minQty}, ${p.value} free`;
   const off = p.kind === "PERCENT" ? `${p.value}% off` : `${formatPaise(p.value)} off`;
-  const extras = [p.emailDomain ? `@${p.emailDomain} only` : null, p.tiers.length ? p.tiers.join(", ") : null, p.endsAt ? `until ${formatShort(p.endsAt)}` : null].filter(Boolean);
+  const extras = [
+    p.emailDomain ? `@${p.emailDomain} only` : null,
+    p.tiers.length ? p.tiers.join(", ") : null,
+    p.endsAt ? `until ${formatShort(p.endsAt)}` : null,
+  ].filter(Boolean);
   return [off, ...extras].join(" · ");
 }
 
@@ -67,15 +82,96 @@ export function PromoHub(props: Props) {
     });
 
   const ideas: { icon: IconName; title: string; body: string; action: React.ReactNode }[] = [
-    { icon: "percent", title: "Discount code", body: "% or ₹ off, usage caps, per-person limits, college-email only.", action: <button className="btn btn-sm btn-accent" onClick={() => open("CODE")}>Create code</button> },
-    { icon: "bolt", title: "Flash drop", body: "Release a block of seats at a set time with a live countdown and a notify-me list.", action: <Link className="btn btn-sm" href={`/host/events/${eventId}/tickets`}>Schedule in Tickets</Link> },
-    { icon: "gift", title: "Giveaway", body: "Free entry, verifiable random draw, winners get a ticket in their name.", action: <button className="btn btn-sm btn-accent" onClick={() => open("GIVEAWAY")}>Start giveaway</button> },
-    { icon: "clock", title: "Happy hour", body: "A % off that switches itself on and off, e.g. 9–10 PM on launch night.", action: <button className="btn btn-sm" onClick={() => open("HAPPY_HOUR")}>Set happy hour</button> },
-    { icon: "users", title: "Group deal", body: "Buy 4, pay for 3. Applied automatically when the quantity fits.", action: <button className="btn btn-sm" onClick={() => open("GROUP")}>Add group deal</button> },
-    { icon: "ladder", title: "Price ladder", body: "Early-bird pricing that steps up as seats sell. No manual switching.", action: <Link className="btn btn-sm" href={`/host/events/${eventId}/tickets`}>Set on a ticket</Link> },
-    { icon: "key", title: "Presale access", body: "A hidden ticket type that only appears with a code, e.g. for your college first.", action: <Link className="btn btn-sm" href={`/host/events/${eventId}/tickets`}>Add access code</Link> },
-    { icon: "trophy", title: "Fan ambassadors", body: "Every buyer gets a referral link. See who brings the most friends.", action: <a className="btn btn-sm" href="#referrals">See leaderboard</a> },
-    { icon: "hourglass", title: "Waitlist auto-offer", body: "Sold-out tiers collect a queue. Freed seats are offered for 15 minutes, in order.", action: <a className="btn btn-sm" href="#waitlist">See queue</a> },
+    {
+      icon: "percent",
+      title: "Discount code",
+      body: "% or ₹ off, usage caps, per-person limits, college-email only.",
+      action: (
+        <button className="btn btn-sm btn-accent" onClick={() => open("CODE")}>
+          Create code
+        </button>
+      ),
+    },
+    {
+      icon: "bolt",
+      title: "Flash drop",
+      body: "Release a block of seats at a set time with a live countdown and a notify-me list.",
+      action: (
+        <Link className="btn btn-sm" href={`/host/events/${eventId}/tickets`}>
+          Schedule in Tickets
+        </Link>
+      ),
+    },
+    {
+      icon: "gift",
+      title: "Giveaway",
+      body: "Free entry, verifiable random draw, winners get a ticket in their name.",
+      action: (
+        <button className="btn btn-sm btn-accent" onClick={() => open("GIVEAWAY")}>
+          Start giveaway
+        </button>
+      ),
+    },
+    {
+      icon: "clock",
+      title: "Happy hour",
+      body: "A % off that switches itself on and off, e.g. 9–10 PM on launch night.",
+      action: (
+        <button className="btn btn-sm" onClick={() => open("HAPPY_HOUR")}>
+          Set happy hour
+        </button>
+      ),
+    },
+    {
+      icon: "users",
+      title: "Group deal",
+      body: "Buy 4, pay for 3. Applied automatically when the quantity fits.",
+      action: (
+        <button className="btn btn-sm" onClick={() => open("GROUP")}>
+          Add group deal
+        </button>
+      ),
+    },
+    {
+      icon: "ladder",
+      title: "Price ladder",
+      body: "Early-bird pricing that steps up as seats sell. No manual switching.",
+      action: (
+        <Link className="btn btn-sm" href={`/host/events/${eventId}/tickets`}>
+          Set on a ticket
+        </Link>
+      ),
+    },
+    {
+      icon: "key",
+      title: "Presale access",
+      body: "A hidden ticket type that only appears with a code, e.g. for your college first.",
+      action: (
+        <Link className="btn btn-sm" href={`/host/events/${eventId}/tickets`}>
+          Add access code
+        </Link>
+      ),
+    },
+    {
+      icon: "trophy",
+      title: "Fan ambassadors",
+      body: "Every buyer gets a referral link. See who brings the most friends.",
+      action: (
+        <a className="btn btn-sm" href="#referrals">
+          See leaderboard
+        </a>
+      ),
+    },
+    {
+      icon: "hourglass",
+      title: "Waitlist auto-offer",
+      body: "Sold-out tiers collect a queue. Freed seats are offered for 15 minutes, in order.",
+      action: (
+        <a className="btn btn-sm" href="#waitlist">
+          See queue
+        </a>
+      ),
+    },
   ];
 
   return (
@@ -103,7 +199,13 @@ export function PromoHub(props: Props) {
                   {p.maxUses ? `/${p.maxUses}` : ""} used
                 </span>
                 <label className="switch" title={p.active ? "Pause" : "Resume"}>
-                  <input type="checkbox" checked={p.active} onChange={() => toggle(p)} disabled={pending} aria-label={`${p.active ? "Pause" : "Resume"} ${p.code}`} />
+                  <input
+                    type="checkbox"
+                    checked={p.active}
+                    onChange={() => toggle(p)}
+                    disabled={pending}
+                    aria-label={`${p.active ? "Pause" : "Resume"} ${p.code}`}
+                  />
                   <span />
                 </label>
               </li>
@@ -135,7 +237,9 @@ export function PromoHub(props: Props) {
             <Icon name="plus" small /> New
           </button>
         </div>
-        {props.giveaways.length === 0 ? <p className="small muted">None yet. A giveaway shows on your concert page and collects entries without a purchase.</p> : null}
+        {props.giveaways.length === 0 ? (
+          <p className="small muted">None yet. A giveaway shows on your concert page and collects entries without a purchase.</p>
+        ) : null}
         {props.giveaways.map((g) => (
           <GiveawayRow key={g.id} eventId={eventId} g={g} />
         ))}
@@ -164,8 +268,9 @@ export function PromoHub(props: Props) {
           <p className="small muted">Buyers get a “Get my link” button on their ticket. Their sales show up here.</p>
         ) : (
           <ol className="leaderboard">
-            {props.referrals.map((r) => (
+            {props.referrals.map((r, i) => (
               <li key={r.code}>
+                <span className={`mono xs ${i < 3 ? "chip chip-accent" : ""}`}>#{i + 1}</span>
                 <b>{r.name}</b>
                 <span className="mono xs muted">{r.code}</span>
                 <span className={`chip ${r.sold >= r.rewardAfter ? "chip-ok" : ""}`}>
@@ -206,8 +311,31 @@ export function PromoHub(props: Props) {
   );
 }
 
-function PromoForm({ type, eventId, tiers, onDone }: { type: "CODE" | "HAPPY_HOUR" | "GROUP"; eventId: string; tiers: { id: string; name: string }[]; onDone: () => void }) {
-  const [f, setF] = useState<PromoInput>({ type, code: "", label: "", kind: "PERCENT", value: type === "GROUP" ? 1 : 10, maxUses: "", perEmailLimit: 1, emailDomain: "", groupSize: 4, ticketTypeIds: [], startsAt: "", endsAt: "" });
+function PromoForm({
+  type,
+  eventId,
+  tiers,
+  onDone,
+}: {
+  type: "CODE" | "HAPPY_HOUR" | "GROUP";
+  eventId: string;
+  tiers: { id: string; name: string }[];
+  onDone: () => void;
+}) {
+  const [f, setF] = useState<PromoInput>({
+    type,
+    code: "",
+    label: "",
+    kind: "PERCENT",
+    value: type === "GROUP" ? 1 : 10,
+    maxUses: "",
+    perEmailLimit: 1,
+    emailDomain: "",
+    groupSize: 4,
+    ticketTypeIds: [],
+    startsAt: "",
+    endsAt: "",
+  });
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
   const router = useRouter();
@@ -242,7 +370,12 @@ function PromoForm({ type, eventId, tiers, onDone }: { type: "CODE" | "HAPPY_HOU
               <span>{f.kind === "PERCENT" ? `${f.value || 0}% OFF` : `₹${f.value || 0} OFF`}</span>
             </div>
             <div className="grid-2">
-              <Field label="Code" value={String(f.code ?? "")} onChange={(v) => set({ code: v.toUpperCase() })} hint="What buyers type, e.g. NIGHTOWL" />
+              <Field
+                label="Code"
+                value={String(f.code ?? "")}
+                onChange={(v) => set({ code: v.toUpperCase() })}
+                hint="What buyers type, e.g. NIGHTOWL"
+              />
               <div className="field">
                 <span className="flabel">Discount type</span>
                 <div className="seg">
@@ -256,23 +389,63 @@ function PromoForm({ type, eventId, tiers, onDone }: { type: "CODE" | "HAPPY_HOU
               </div>
             </div>
             <div className="grid-3">
-              <Field label={f.kind === "PERCENT" ? "Percent off" : "Rupees off"} type="number" value={String(f.value)} onChange={(v) => set({ value: v })} />
-              <Field label="Total uses" type="number" value={String(f.maxUses ?? "")} onChange={(v) => set({ maxUses: v })} hint="Empty = unlimited" />
+              <Field
+                label={f.kind === "PERCENT" ? "Percent off" : "Rupees off"}
+                type="number"
+                value={String(f.value)}
+                onChange={(v) => set({ value: v })}
+              />
+              <Field
+                label="Total uses"
+                type="number"
+                value={String(f.maxUses ?? "")}
+                onChange={(v) => set({ maxUses: v })}
+                hint="Empty = unlimited"
+              />
               <Field label="Per person" type="number" value={String(f.perEmailLimit)} onChange={(v) => set({ perEmailLimit: v })} />
             </div>
-            <Field label="Only for email domain" value={String(f.emailDomain ?? "")} onChange={(v) => set({ emailDomain: v })} hint="Optional, e.g. dit.ac.in for students of your college" />
+            <Field
+              label="Only for email domain"
+              value={String(f.emailDomain ?? "")}
+              onChange={(v) => set({ emailDomain: v })}
+              hint="Optional, e.g. dit.ac.in for students of your college"
+            />
           </>
         ) : type === "HAPPY_HOUR" ? (
           <Field label="Percent off" type="number" value={String(f.value)} onChange={(v) => set({ value: v })} />
         ) : (
           <div className="grid-2">
-            <Field label="Group size" type="number" value={String(f.groupSize)} onChange={(v) => set({ groupSize: v })} hint="Buy this many…" />
-            <Field label="Free tickets per group" type="number" value={String(f.value)} onChange={(v) => set({ value: v })} hint="…and get this many free" />
+            <Field
+              label="Group size"
+              type="number"
+              value={String(f.groupSize)}
+              onChange={(v) => set({ groupSize: v })}
+              hint="Buy this many…"
+            />
+            <Field
+              label="Free tickets per group"
+              type="number"
+              value={String(f.value)}
+              onChange={(v) => set({ value: v })}
+              hint="…and get this many free"
+            />
           </div>
         )}
         <div className="grid-2">
-          <Field label={type === "HAPPY_HOUR" ? "Starts" : "Valid from"} type="datetime-local" value={String(f.startsAt ?? "")} onChange={(v) => set({ startsAt: v })} hint={type === "HAPPY_HOUR" ? undefined : "Optional"} />
-          <Field label={type === "HAPPY_HOUR" ? "Ends" : "Valid until"} type="datetime-local" value={String(f.endsAt ?? "")} onChange={(v) => set({ endsAt: v })} hint={type === "HAPPY_HOUR" ? undefined : "Optional"} />
+          <Field
+            label={type === "HAPPY_HOUR" ? "Starts" : "Valid from"}
+            type="datetime-local"
+            value={String(f.startsAt ?? "")}
+            onChange={(v) => set({ startsAt: v })}
+            hint={type === "HAPPY_HOUR" ? undefined : "Optional"}
+          />
+          <Field
+            label={type === "HAPPY_HOUR" ? "Ends" : "Valid until"}
+            type="datetime-local"
+            value={String(f.endsAt ?? "")}
+            onChange={(v) => set({ endsAt: v })}
+            hint={type === "HAPPY_HOUR" ? undefined : "Optional"}
+          />
         </div>
         <fieldset className="field" style={{ border: 0, padding: 0, margin: 0 }}>
           <legend className="flabel">Applies to</legend>
@@ -285,7 +458,9 @@ function PromoForm({ type, eventId, tiers, onDone }: { type: "CODE" | "HAPPY_HOU
                     type="checkbox"
                     className="sr-only"
                     checked={!!on}
-                    onChange={() => set({ ticketTypeIds: on ? f.ticketTypeIds!.filter((x) => x !== t.id) : [...(f.ticketTypeIds ?? []), t.id] })}
+                    onChange={() =>
+                      set({ ticketTypeIds: on ? f.ticketTypeIds!.filter((x) => x !== t.id) : [...(f.ticketTypeIds ?? []), t.id] })
+                    }
                   />
                   {t.name}
                 </label>
@@ -294,7 +469,11 @@ function PromoForm({ type, eventId, tiers, onDone }: { type: "CODE" | "HAPPY_HOU
           </div>
           <span className="hint">None selected = every ticket type.</span>
         </fieldset>
-        {error ? <p className="notice notice-no small" role="alert">{error}</p> : null}
+        {error ? (
+          <p className="notice notice-no small" role="alert">
+            {error}
+          </p>
+        ) : null}
       </div>
       <div className="dlg-f">
         <button type="button" className="btn" onClick={onDone}>
@@ -349,8 +528,15 @@ function GiveawayForm({ eventId, tiers, onDone }: { eventId: string; tiers: { id
           <Field label="Winners" type="number" value={String(f.winnersCount)} onChange={(v) => setF({ ...f, winnersCount: Number(v) })} />
         </div>
         <Field label="Entries close" type="datetime-local" value={f.closesAt} onChange={(v) => setF({ ...f, closesAt: v })} />
-        <p className="xs muted">A random seed is fixed now and its fingerprint shown publicly. After the draw the seed is revealed, so anyone can check the winners weren&apos;t picked by hand.</p>
-        {error ? <p className="notice notice-no small" role="alert">{error}</p> : null}
+        <p className="xs muted">
+          A random seed is fixed now and its fingerprint shown publicly. After the draw the seed is revealed, so anyone can check the
+          winners weren&apos;t picked by hand.
+        </p>
+        {error ? (
+          <p className="notice notice-no small" role="alert">
+            {error}
+          </p>
+        ) : null}
       </div>
       <div className="dlg-f">
         <button type="button" className="btn" onClick={onDone}>
@@ -384,7 +570,8 @@ function GiveawayRow({ eventId, g }: { eventId: string; g: Giveaway }) {
         <div>
           <b>{g.title}</b>
           <div className="xs muted">
-            {g.prize} · {g.winnersCount} winners · {g.entries} entries · {g.status === "OPEN" ? `closes ${formatShort(g.closesAt)}` : "drawn"}
+            {g.prize} · {g.winnersCount} winners · {g.entries} entries ·{" "}
+            {g.status === "OPEN" ? `closes ${formatShort(g.closesAt)}` : "drawn"}
           </div>
         </div>
         {g.status === "OPEN" ? (
@@ -395,7 +582,16 @@ function GiveawayRow({ eventId, g }: { eventId: string; g: Giveaway }) {
           <span className="chip chip-ok">Winners: {g.winners.join(", ")}</span>
         )}
       </div>
-      {drawn ? <DrawDrum entrants={drawn.entrants} winners={drawn.winners} onClose={() => { setDrawn(null); router.refresh(); }} /> : null}
+      {drawn ? (
+        <DrawDrum
+          entrants={drawn.entrants}
+          winners={drawn.winners}
+          onClose={() => {
+            setDrawn(null);
+            router.refresh();
+          }}
+        />
+      ) : null}
       <p className="xs muted mono" style={{ wordBreak: "break-all" }}>
         Fingerprint {g.seedHash}
         {g.seed || drawn ? ` · seed ${drawn?.seed ?? g.seed}` : ""}
@@ -422,7 +618,16 @@ function RewardSetter({ eventId, current }: { eventId: string; current: number }
       <label className="xs" htmlFor="reward-n">
         Reward after
       </label>
-      <input id="reward-n" className="input" style={{ width: 70, minHeight: 34 }} type="number" min={1} max={50} value={n} onChange={(e) => setN(Number(e.target.value))} />
+      <input
+        id="reward-n"
+        className="input"
+        style={{ width: 70, minHeight: 34 }}
+        type="number"
+        min={1}
+        max={50}
+        value={n}
+        onChange={(e) => setN(Number(e.target.value))}
+      />
       <span className="xs">sales</span>
       <button className="btn btn-sm" type="submit" disabled={pending}>
         Save
@@ -431,7 +636,19 @@ function RewardSetter({ eventId, current }: { eventId: string; current: number }
   );
 }
 
-function Field({ label, value, onChange, type = "text", hint }: { label: string; value: string; onChange: (v: string) => void; type?: string; hint?: string }) {
+function Field({
+  label,
+  value,
+  onChange,
+  type = "text",
+  hint,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  type?: string;
+  hint?: string;
+}) {
   const id = `p-${label.replace(/\W+/g, "-").toLowerCase()}`;
   return (
     <div className="field">

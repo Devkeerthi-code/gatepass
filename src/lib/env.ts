@@ -4,9 +4,7 @@ import { z } from "zod";
 const schema = z.object({
   DATABASE_URL: z.string().min(1),
   APP_URL: z.string().url().default("http://localhost:3000"),
-  APP_ENCRYPTION_KEY: z
-    .string()
-    .refine((v) => Buffer.from(v, "base64").length === 32, "must be 32 bytes, base64-encoded"),
+  APP_ENCRYPTION_KEY: z.string().refine((v) => Buffer.from(v, "base64").length === 32, "must be 32 bytes, base64-encoded"),
   TICKET_SIGNING_SECRET: z.string().min(32),
   CRON_SECRET: z.string().min(16),
   MOCK_PAYMENT_SECRET: z.string().min(16),

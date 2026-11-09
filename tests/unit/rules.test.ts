@@ -80,7 +80,10 @@ describe("promotions", () => {
 
   it("enforces window, usage, tier, quantity and email domain", () => {
     expect(checkPromoEligibility(base, ctx).ok).toBe(true);
-    expect(checkPromoEligibility({ ...base, endsAt: new Date("2029-01-01") }, ctx)).toMatchObject({ ok: false, reason: "This code has expired." });
+    expect(checkPromoEligibility({ ...base, endsAt: new Date("2029-01-01") }, ctx)).toMatchObject({
+      ok: false,
+      reason: "This code has expired.",
+    });
     expect(checkPromoEligibility({ ...base, startsAt: new Date("2031-01-01") }, ctx).ok).toBe(false);
     expect(checkPromoEligibility({ ...base, maxUses: 5, used: 5 }, ctx).ok).toBe(false);
     expect(checkPromoEligibility({ ...base, ticketTypeIds: ["other"] }, ctx).ok).toBe(false);
@@ -97,5 +100,18 @@ describe("money", () => {
     expect(formatPaise(49_900)).toBe("₹499");
     expect(formatPaise(110_438_50)).toBe("₹1,10,438.50");
     expect(formatPaise(0)).toBe("₹0");
+  });
+});
+
+describe("host accent colours", () => {
+  it("puts dark text on light accents and white text on dark ones", async () => {
+    const { accentVars, contrastRatio } = await import("@/lib/accent");
+    expect((accentVars("#D4136F") as Record<string, string>)["--accent-ink"]).toBe("#ffffff");
+    expect((accentVars("#FFD84D") as Record<string, string>)["--accent-ink"]).toBe("#16130f");
+    expect((accentVars("not-a-colour") as Record<string, string>)["--accent"]).toBe("#D4136F");
+    for (const hex of ["#D4136F", "#2B3FE0", "#C8431F", "#0B7559", "#7A3FE0", "#16130F"]) {
+      const ink = (accentVars(hex) as Record<string, string>)["--accent-ink"];
+      expect(contrastRatio(hex, ink)).toBeGreaterThanOrEqual(4.5);
+    }
   });
 });

@@ -31,7 +31,9 @@ export function CheckoutForm(props: Props) {
   const [form, setForm] = useState({ ...props.prefill, promoCode: "" });
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [errors, setErrors] = useState<Record<string, string[] | undefined>>({});
-  const [banner, setBanner] = useState<string | null>(props.failureReason ? `Last attempt: ${props.failureReason}. Your seats are still held, so you can try again.` : null);
+  const [banner, setBanner] = useState<string | null>(
+    props.failureReason ? `Last attempt: ${props.failureReason}. Your seats are still held, so you can try again.` : null,
+  );
   const [expired, setExpired] = useState(false);
   const [pending, start] = useTransition();
   const [releasing, startRelease] = useTransition();
@@ -42,7 +44,11 @@ export function CheckoutForm(props: Props) {
   const subtotal = unitPricePaise * qty;
   const onExpire = useCallback(() => setExpired(true), []);
 
-  const field = (name: keyof typeof form, label: string, opts: { type?: string; autoComplete?: string; hint?: string; inputMode?: "numeric" | "email" } = {}) => {
+  const field = (
+    name: keyof typeof form,
+    label: string,
+    opts: { type?: string; autoComplete?: string; hint?: string; inputMode?: "numeric" | "email" } = {},
+  ) => {
     const err = errors[name]?.[0];
     return (
       <div className="field">
@@ -58,7 +64,13 @@ export function CheckoutForm(props: Props) {
           aria-invalid={!!err}
           aria-describedby={err ? `${name}-err` : undefined}
         />
-        {err ? <span className="err" id={`${name}-err`}>{err}</span> : opts.hint ? <span className="hint">{opts.hint}</span> : null}
+        {err ? (
+          <span className="err" id={`${name}-err`}>
+            {err}
+          </span>
+        ) : opts.hint ? (
+          <span className="hint">{opts.hint}</span>
+        ) : null}
       </div>
     );
   };
@@ -128,12 +140,20 @@ export function CheckoutForm(props: Props) {
           </span>
           <Countdown to={props.holdExpiresAt} onDone={onExpire} className="clock" />
         </div>
-        {banner ? <p className="notice notice-no small" role="alert">{banner}</p> : null}
+        {banner ? (
+          <p className="notice notice-no small" role="alert">
+            {banner}
+          </p>
+        ) : null}
         <div className="grid-2">
           {field("buyerName", "Full name", { autoComplete: "name", hint: "Printed on the ticket." })}
           {field("phone", "Mobile", { type: "tel", autoComplete: "tel-national", inputMode: "numeric" })}
         </div>
-        {field("email", "Email", { type: "email", autoComplete: "email", hint: "Use it with your phone number to find your tickets later." })}
+        {field("email", "Email", {
+          type: "email",
+          autoComplete: "email",
+          hint: "Use it with your phone number to find your tickets later.",
+        })}
         {field("college", "College", { autoComplete: "organization", hint: "Or “Not a student”." })}
         {props.questions.map((q) => {
           const err = errors[`q_${q.id}`]?.[0];
@@ -143,7 +163,13 @@ export function CheckoutForm(props: Props) {
                 {q.label}
                 {q.required ? "" : " (optional)"}
               </label>
-              <input id={`q_${q.id}`} className="input" value={answers[q.id] ?? ""} onChange={(e) => setAnswers({ ...answers, [q.id]: e.target.value })} aria-invalid={!!err} />
+              <input
+                id={`q_${q.id}`}
+                className="input"
+                value={answers[q.id] ?? ""}
+                onChange={(e) => setAnswers({ ...answers, [q.id]: e.target.value })}
+                aria-invalid={!!err}
+              />
               {err ? <span className="err">{err}</span> : null}
             </div>
           );
@@ -159,18 +185,32 @@ export function CheckoutForm(props: Props) {
             onChange={(e) => setForm({ ...form, promoCode: e.target.value })}
             aria-invalid={!!errors.promoCode}
           />
-          {errors.promoCode ? <span className="err">{errors.promoCode[0]}</span> : <span className="hint">Group deals and happy-hour prices apply automatically.</span>}
+          {errors.promoCode ? (
+            <span className="err">{errors.promoCode[0]}</span>
+          ) : (
+            <span className="hint">Group deals and happy-hour prices apply automatically.</span>
+          )}
         </div>
-        <div className="notice notice-test small">
+        <div className={`notice small ${props.modeLabel === "Razorpay Live" ? "" : "notice-test"}`}>
           <Icon name="lock" />
           <span>
             Payment mode: <b>{props.modeLabel}</b>.{" "}
-            {props.modeLabel === "Mock" ? "This is a simulator. No real money moves." : props.modeLabel === "Razorpay Test" ? "Razorpay test mode. Use test cards; no real money moves." : "Real payment through Razorpay."}
+            {props.modeLabel === "Mock"
+              ? "This is a simulator. No real money moves."
+              : props.modeLabel === "Razorpay Test"
+                ? "Razorpay test mode. Use test cards; no real money moves."
+                : "Real payment through Razorpay."}
           </span>
         </div>
         <button className="btn btn-accent btn-lg btn-block" type="submit" disabled={pending || paying}>
           {pending || paying ? <span className="spinner" aria-hidden="true" /> : null}
-          {pending ? "Checking…" : paying ? "Waiting for payment…" : subtotal ? `Continue to pay` : "Get my free pass"}
+          {pending
+            ? "Checking…"
+            : paying
+              ? "Waiting for payment…"
+              : subtotal
+                ? `Continue to pay ${formatPaise(quote?.amountPaise ?? subtotal)}`
+                : "Get my free pass"}
         </button>
         <button type="button" className="btn btn-ghost btn-sm" onClick={release} disabled={releasing} style={{ justifySelf: "center" }}>
           {releasing ? "Releasing…" : "Release my seats"}

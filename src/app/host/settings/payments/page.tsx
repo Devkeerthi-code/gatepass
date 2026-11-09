@@ -10,7 +10,10 @@ export const metadata: Metadata = { title: "Payments" };
 
 async function Payments() {
   const viewer = await requireViewer("payments:manage");
-  const [settings, checks] = await Promise.all([db.paymentSettings.findUnique({ where: { orgId: viewer.orgId } }), liveReadiness(viewer.orgId)]);
+  const [settings, checks] = await Promise.all([
+    db.paymentSettings.findUnique({ where: { orgId: viewer.orgId } }),
+    liveReadiness(viewer.orgId),
+  ]);
   const { APP_URL, RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET } = env();
   const envKeys = !!(RAZORPAY_KEY_ID && RAZORPAY_KEY_SECRET);
   // With no saved settings, the app-wide .env keys (if any) are used, otherwise Mock.

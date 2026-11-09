@@ -65,7 +65,12 @@ describe("payment confirmation", () => {
     const t0 = new Date("2030-01-01T10:00:00Z");
     const { orderId, providerOrderId } = await pendingOrder(5, 2, t0);
     const later = new Date(t0.getTime() + 30 * 60_000);
-    await placeHold({ ticketTypeId: (await db.order.findUniqueOrThrow({ where: { id: orderId } })).ticketTypeId, qty: 1, idempotencyKey: randomUUID(), now: later });
+    await placeHold({
+      ticketTypeId: (await db.order.findUniqueOrThrow({ where: { id: orderId } })).ticketTypeId,
+      qty: 1,
+      idempotencyKey: randomUUID(),
+      now: later,
+    });
     expect((await db.order.findUniqueOrThrow({ where: { id: orderId } })).status).toBe("EXPIRED");
 
     const out = await confirm(providerOrderId, "pay_late", later);

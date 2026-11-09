@@ -147,7 +147,9 @@ export async function applyDetails(
     if (!check.ok) return { ok: false, error: "PROMO", message: check.reason };
     // Serialises checkouts for the same (code, email) so per-person limits can't be raced.
     await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${`${promo.id}:${details.email.toLowerCase()}`}))`;
-    const usedByEmail = await tx.promoRedemption.count({ where: { promoId: promo.id, email: details.email.toLowerCase(), orderId: { not: order.id } } });
+    const usedByEmail = await tx.promoRedemption.count({
+      where: { promoId: promo.id, email: details.email.toLowerCase(), orderId: { not: order.id } },
+    });
     if (usedByEmail >= promo.perEmailLimit) {
       return { ok: false, error: "PROMO", message: "You've already used this code." };
     }

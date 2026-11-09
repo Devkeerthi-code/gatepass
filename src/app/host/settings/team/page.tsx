@@ -9,7 +9,11 @@ export const metadata: Metadata = { title: "Team" };
 async function Team() {
   const viewer = await requireViewer("team:manage");
   const [members, invites, scans] = await Promise.all([
-    db.membership.findMany({ where: { orgId: viewer.orgId }, include: { user: { select: { name: true, email: true } } }, orderBy: { role: "asc" } }),
+    db.membership.findMany({
+      where: { orgId: viewer.orgId },
+      include: { user: { select: { name: true, email: true } } },
+      orderBy: { role: "asc" },
+    }),
     db.invite.findMany({ where: { orgId: viewer.orgId, acceptedAt: null, expiresAt: { gt: new Date() } }, orderBy: { createdAt: "desc" } }),
     db.checkInLog.groupBy({ by: ["volunteerId"], where: { event: { orgId: viewer.orgId }, result: "OK" }, _count: { _all: true } }),
   ]);
@@ -17,7 +21,14 @@ async function Team() {
   return (
     <TeamPanel
       me={viewer.userId}
-      members={members.map((m) => ({ id: m.id, userId: m.userId, name: m.user.name, email: m.user.email, role: m.role, scans: scanCount.get(m.userId) ?? 0 }))}
+      members={members.map((m) => ({
+        id: m.id,
+        userId: m.userId,
+        name: m.user.name,
+        email: m.user.email,
+        role: m.role,
+        scans: scanCount.get(m.userId) ?? 0,
+      }))}
       invites={invites.map((i) => ({ id: i.id, email: i.email, role: i.role, expiresAt: i.expiresAt.toISOString() }))}
     />
   );

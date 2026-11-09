@@ -27,7 +27,9 @@ export function FindForm() {
       </form>
       {state && "orders" in state ? (
         state.orders.length === 0 ? (
-          <p className="notice small">No paid tickets match that email and phone. Check for typos, or the number you entered at checkout.</p>
+          <p className="notice small">
+            No paid tickets match that email and phone. Check for typos, or the number you entered at checkout.
+          </p>
         ) : (
           <ul className="stack" role="list" style={{ listStyle: "none", padding: 0 }}>
             {state.orders.map((o) => (

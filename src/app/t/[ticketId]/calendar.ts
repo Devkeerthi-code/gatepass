@@ -1,6 +1,10 @@
 type CalEvent = { name: string; venue: string; venueAddress: string | null; startsAt: Date; endsAt: Date; slug: string };
 
-const stamp = (d: Date) => d.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
+const stamp = (d: Date) =>
+  d
+    .toISOString()
+    .replace(/[-:]/g, "")
+    .replace(/\.\d{3}/, "");
 
 function location(e: CalEvent) {
   return [e.venue, e.venueAddress].filter(Boolean).join(", ");

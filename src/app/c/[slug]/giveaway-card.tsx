@@ -38,7 +38,8 @@ export function GiveawayCard({
       </span>
       <h3 id="gw-h">{title}</h3>
       <p className="small muted" style={{ maxWidth: "34ch" }}>
-        {winners} winner{winners > 1 ? "s" : ""}, drawn with a random seed fixed in advance. {entries} entr{entries === 1 ? "y" : "ies"} so far. No purchase needed.
+        {winners} winner{winners > 1 ? "s" : ""}, drawn with a random seed fixed in advance. {entries} entr{entries === 1 ? "y" : "ies"} so
+        far. No purchase needed.
       </p>
       {msg?.ok ? (
         <p className="small" role="status">
@@ -56,13 +57,46 @@ export function GiveawayCard({
             });
           }}
         >
-          <label className="sr-only" htmlFor="gw-name">Your name</label>
-          <input id="gw-name" className="input" placeholder="Your name" autoComplete="name" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-          <label className="sr-only" htmlFor="gw-email">Email</label>
-          <input id="gw-email" className="input" type="email" placeholder="you@college.edu" autoComplete="email" required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
-          <label className="sr-only" htmlFor="gw-phone">Mobile number</label>
+          <label className="sr-only" htmlFor="gw-name">
+            Your name
+          </label>
+          <input
+            id="gw-name"
+            className="input"
+            placeholder="Your name"
+            autoComplete="name"
+            required
+            value={form.name}
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
+          />
+          <label className="sr-only" htmlFor="gw-email">
+            Email
+          </label>
+          <input
+            id="gw-email"
+            className="input"
+            type="email"
+            placeholder="you@college.edu"
+            autoComplete="email"
+            required
+            value={form.email}
+            onChange={(e) => setForm({ ...form, email: e.target.value })}
+          />
+          <label className="sr-only" htmlFor="gw-phone">
+            Mobile number
+          </label>
           <div className="input-group">
-            <input id="gw-phone" className="input" type="tel" inputMode="numeric" placeholder="Mobile" autoComplete="tel-national" required value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+            <input
+              id="gw-phone"
+              className="input"
+              type="tel"
+              inputMode="numeric"
+              placeholder="Mobile"
+              autoComplete="tel-national"
+              required
+              value={form.phone}
+              onChange={(e) => setForm({ ...form, phone: e.target.value })}
+            />
             <button className="btn btn-accent" type="submit" disabled={pending}>
               {pending ? <span className="spinner" aria-hidden="true" /> : "Enter"}
             </button>

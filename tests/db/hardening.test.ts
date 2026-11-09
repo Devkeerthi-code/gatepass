@@ -87,7 +87,15 @@ describe("refunds", () => {
 
     const ticket = await db.ticket.findFirstOrThrow({ where: { orderId } });
     const scan = await transaction((tx) =>
-      checkIn(tx, { eventId: event.id, volunteerId: volunteer.id, clientScanId: randomUUID(), code: signTicketCode(ticket.id, SIGNING), scannedAt: new Date(), now: new Date(), signingSecret: SIGNING }),
+      checkIn(tx, {
+        eventId: event.id,
+        volunteerId: volunteer.id,
+        clientScanId: randomUUID(),
+        code: signTicketCode(ticket.id, SIGNING),
+        scannedAt: new Date(),
+        now: new Date(),
+        signingSecret: SIGNING,
+      }),
     );
     expect(scan).toMatchObject({ result: "INVALID", reason: "This ticket was refunded or cancelled." });
   });
@@ -103,7 +111,15 @@ describe("refunds", () => {
     const { org, volunteer, event, orderId } = await paidOrder(1);
     const ticket = await db.ticket.findFirstOrThrow({ where: { orderId } });
     await transaction((tx) =>
-      checkIn(tx, { eventId: event.id, volunteerId: volunteer.id, clientScanId: randomUUID(), ticketId: ticket.id, scannedAt: new Date(), now: new Date(), signingSecret: SIGNING }),
+      checkIn(tx, {
+        eventId: event.id,
+        volunteerId: volunteer.id,
+        clientScanId: randomUUID(),
+        ticketId: ticket.id,
+        scannedAt: new Date(),
+        now: new Date(),
+        signingSecret: SIGNING,
+      }),
     );
     expect(await refund(orderId, org.id)).toMatchObject({ ok: false, reason: "CHECKED_IN" });
   });
@@ -140,9 +156,13 @@ describe("promo per-person limit under concurrency", () => {
     const { org } = await makeOrg();
     const { ticketType, event } = await makeEvent(org.id, { capacity: 10, pricePaise: 10_000 });
     await db.promoCode.create({ data: { eventId: event.id, code: "ONCE", kind: "PERCENT", value: 50, perEmailLimit: 1 } });
-    const holds = await Promise.all([1, 2].map(() => placeHold({ ticketTypeId: ticketType.id, qty: 1, idempotencyKey: randomUUID(), now: new Date() })));
+    const holds = await Promise.all(
+      [1, 2].map(() => placeHold({ ticketTypeId: ticketType.id, qty: 1, idempotencyKey: randomUUID(), now: new Date() })),
+    );
     const results = await Promise.all(
-      holds.map((h) => (h.ok ? transaction((tx) => applyDetails(tx, h.orderId, buyer, "ONCE", new Date())) : Promise.reject(new Error("hold failed")))),
+      holds.map((h) =>
+        h.ok ? transaction((tx) => applyDetails(tx, h.orderId, buyer, "ONCE", new Date())) : Promise.reject(new Error("hold failed")),
+      ),
     );
     expect(results.filter((r) => r.ok)).toHaveLength(1);
     expect((await db.promoCode.findFirstOrThrow({ where: { code: "ONCE" } })).used).toBe(1);

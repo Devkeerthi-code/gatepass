@@ -17,7 +17,11 @@ const optional = <T extends z.ZodType>(s: T) => z.preprocess((v) => (v === "" ? 
 const eventSchema = z
   .object({
     name: z.string().trim().min(2, "Give the concert a name.").max(80),
-    slug: z.string().trim().toLowerCase().regex(/^[a-z0-9-]{3,60}$/, "Use 3–60 lowercase letters, numbers or dashes."),
+    slug: z
+      .string()
+      .trim()
+      .toLowerCase()
+      .regex(/^[a-z0-9-]{3,60}$/, "Use 3–60 lowercase letters, numbers or dashes."),
     tagline: optional(z.string().trim().max(120)),
     description: z.string().trim().min(10, "Tell people what to expect (at least a sentence).").max(4000),
     venue: z.string().trim().min(2, "Where is it?").max(120),
@@ -28,7 +32,11 @@ const eventSchema = z
     endsAt: localDate,
     accentHex: z.string().regex(/^#[0-9a-fA-F]{6}$/, "Pick a colour."),
     ticketStock: z.string().regex(/^(paper|pink|butter|mint|lilac|night):(guilloche|halftone|stripes|plain)$/),
-    serialPrefix: z.string().trim().toUpperCase().regex(/^[A-Z0-9]{2,6}$/, "2–6 letters or numbers."),
+    serialPrefix: z
+      .string()
+      .trim()
+      .toUpperCase()
+      .regex(/^[A-Z0-9]{2,6}$/, "2–6 letters or numbers."),
     refundPolicy: optional(z.string().trim().max(2000)),
     artists: z
       .array(
@@ -74,7 +82,10 @@ export async function saveEvent(eventId: string, input: EventInput): Promise<Act
   if (!parsed.success) {
     const flat = z.flattenError(parsed.error);
     const first = parsed.error.issues[0];
-    return { error: first ? `${first.path.join(" ")}: ${first.message}`.replace(/^: /, "") : "Check the form.", fieldErrors: flat.fieldErrors };
+    return {
+      error: first ? `${first.path.join(" ")}: ${first.message}`.replace(/^: /, "") : "Check the form.",
+      fieldErrors: flat.fieldErrors,
+    };
   }
   const v = parsed.data;
   try {
@@ -100,7 +111,13 @@ export async function saveEvent(eventId: string, input: EventInput): Promise<Act
       }),
       db.artist.deleteMany({ where: { eventId } }),
       db.artist.createMany({
-        data: v.artists.map((a, i) => ({ eventId, name: a.name, billing: a.billing || "Support", startsAt: a.startsAt ? fromLocalInput(a.startsAt) : null, sortOrder: i })),
+        data: v.artists.map((a, i) => ({
+          eventId,
+          name: a.name,
+          billing: a.billing || "Support",
+          startsAt: a.startsAt ? fromLocalInput(a.startsAt) : null,
+          sortOrder: i,
+        })),
       }),
       db.faq.deleteMany({ where: { eventId } }),
       db.faq.createMany({ data: v.faqs.map((f, i) => ({ eventId, ...f, sortOrder: i })) }),
@@ -149,7 +166,10 @@ export async function removePoster(eventId: string): Promise<ActionState> {
 export async function setPublished(eventId: string, publish: boolean): Promise<ActionState> {
   const viewer = await viewerWith("event:manage");
   if (!viewer) return { error: "Only admins can publish." };
-  const event = await db.event.findFirst({ where: { id: eventId, orgId: viewer.orgId }, include: { _count: { select: { ticketTypes: true } } } });
+  const event = await db.event.findFirst({
+    where: { id: eventId, orgId: viewer.orgId },
+    include: { _count: { select: { ticketTypes: true } } },
+  });
   if (!event) return { error: "Concert not found." };
   if (publish) {
     if (!event.venue || event.description.length < 10) return { error: "Add a venue and description in the concert page tab first." };

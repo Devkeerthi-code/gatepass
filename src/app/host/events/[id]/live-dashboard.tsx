@@ -19,7 +19,7 @@ function fillBuckets(entries: EventStats["entries"]): { t: number; people: numbe
   return out.slice(-32);
 }
 
-export function LiveDashboard({ eventId, initial }: { eventId: string; initial: EventStats }) {
+export function LiveDashboard({ eventId, initial, mode }: { eventId: string; initial: EventStats; mode: "MOCK" | "TEST" | "LIVE" }) {
   const [stats, setStats] = useState(initial);
   const [stale, setStale] = useState(false);
 
@@ -57,8 +57,17 @@ export function LiveDashboard({ eventId, initial }: { eventId: string; initial: 
 
       <div className="kpis">
         <Kpi label="People sold" value={String(stats.peopleSold)} sub={`${stats.ticketsSold} tickets · ${capacity} capacity`} />
-        <Kpi label="Revenue (test)" value={formatPaise(stats.revenuePaise)} sub={stats.discountPaise ? `${formatPaise(stats.discountPaise)} given in promos` : `${stats.ordersPaid} paid orders`} />
-        <Kpi label="Checked in" value={`${stats.peopleIn}`} sub={`${inPct}% of people sold`} meter={stats.peopleSold ? stats.peopleIn / stats.peopleSold : 0} />
+        <Kpi
+          label={mode === "LIVE" ? "Revenue" : `Revenue (${mode === "MOCK" ? "mock" : "test"})`}
+          value={formatPaise(stats.revenuePaise)}
+          sub={stats.discountPaise ? `${formatPaise(stats.discountPaise)} given in promos` : `${stats.ordersPaid} paid orders`}
+        />
+        <Kpi
+          label="Checked in"
+          value={`${stats.peopleIn}`}
+          sub={`${inPct}% of people sold`}
+          meter={stats.peopleSold ? stats.peopleIn / stats.peopleSold : 0}
+        />
         <Kpi label="Still to arrive" value={String(Math.max(0, stats.peopleSold - stats.peopleIn))} sub="Sold but not scanned yet" />
       </div>
 

@@ -58,7 +58,12 @@ async function replay(tx: Tx, clientScanId: string, volunteerId: string): Promis
   if (log.result === "OK" && t.checkedInById === volunteerId) {
     return { result: "OK", ticket: summary(t), checkedInAt: t.checkedInAt.toISOString() };
   }
-  return { result: "DUPLICATE", ticket: summary(t), checkedInAt: t.checkedInAt.toISOString(), checkedInBy: t.checkedInBy?.name ?? "a volunteer" };
+  return {
+    result: "DUPLICATE",
+    ticket: summary(t),
+    checkedInAt: t.checkedInAt.toISOString(),
+    checkedInBy: t.checkedInBy?.name ?? "a volunteer",
+  };
 }
 
 /**
@@ -75,7 +80,14 @@ export async function checkIn(tx: Tx, input: CheckInInput): Promise<ScanOutcome>
 
   const log = (result: "OK" | "DUPLICATE" | "INVALID", id: string | null) =>
     tx.checkInLog.create({
-      data: { eventId: input.eventId, ticketId: id, result, volunteerId: input.volunteerId, clientScanId: input.clientScanId, scannedAt: at },
+      data: {
+        eventId: input.eventId,
+        ticketId: id,
+        result,
+        volunteerId: input.volunteerId,
+        clientScanId: input.clientScanId,
+        scannedAt: at,
+      },
     });
 
   if (!ticket || ticket.eventId !== input.eventId) {

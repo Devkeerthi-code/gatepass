@@ -42,10 +42,7 @@ export function simulateMockPayment(rootSecret: string, providerOrderId: string)
 }
 
 /** A Razorpay-shaped payment.captured webhook body plus its signature. */
-export function buildMockWebhook(
-  rootSecret: string,
-  input: { providerOrderId: string; providerPaymentId: string; amountPaise: number },
-) {
+export function buildMockWebhook(rootSecret: string, input: { providerOrderId: string; providerPaymentId: string; amountPaise: number }) {
   const body = JSON.stringify({
     entity: "event",
     event: "payment.captured",

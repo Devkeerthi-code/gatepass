@@ -61,7 +61,7 @@ async function EventPicker() {
 
 export default function ScanHome() {
   return (
-    <main className="container narrow stack">
+    <main id="main" className="container narrow stack">
       <div className="row between">
         <Link className="brand" href="/scan">
           <Icon name="logo" className="brand-mark" />

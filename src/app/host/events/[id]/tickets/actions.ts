@@ -12,7 +12,13 @@ import { emailTicketsLater } from "@/server/email";
 import { createCompOrder } from "@/server/orders";
 import type { ActionState } from "../../actions";
 
-const optionalDate = z.preprocess((v) => (v === "" ? undefined : v), z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/).optional());
+const optionalDate = z.preprocess(
+  (v) => (v === "" ? undefined : v),
+  z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/)
+    .optional(),
+);
 
 const tierSchema = z.object({
   id: z.string().optional(),
@@ -25,10 +31,16 @@ const tierSchema = z.object({
   salesStart: optionalDate,
   salesEnd: optionalDate,
   isDrop: z.boolean(),
-  accessCode: z.preprocess((v) => (v === "" ? undefined : v), z.string().trim().toUpperCase().regex(/^[A-Z0-9-]{3,24}$/, "3–24 letters, numbers or dashes.").optional()),
-  steps: z
-    .array(z.object({ afterSold: z.coerce.number().int().min(1), priceRupees: z.coerce.number().min(0).max(100_000) }))
-    .max(5),
+  accessCode: z.preprocess(
+    (v) => (v === "" ? undefined : v),
+    z
+      .string()
+      .trim()
+      .toUpperCase()
+      .regex(/^[A-Z0-9-]{3,24}$/, "3–24 letters, numbers or dashes.")
+      .optional(),
+  ),
+  steps: z.array(z.object({ afterSold: z.coerce.number().int().min(1), priceRupees: z.coerce.number().min(0).max(100_000) })).max(5),
 });
 
 export type TierInput = z.input<typeof tierSchema>;
@@ -40,7 +52,8 @@ export async function saveTier(eventId: string, input: TierInput): Promise<Actio
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Check the form." };
   const v = parsed.data;
   if (v.isDrop && !v.salesStart) return { error: "A flash drop needs a drop time (sales start)." };
-  if (v.salesStart && v.salesEnd && fromLocalInput(v.salesEnd) <= fromLocalInput(v.salesStart)) return { error: "Sales must end after they start." };
+  if (v.salesStart && v.salesEnd && fromLocalInput(v.salesEnd) <= fromLocalInput(v.salesStart))
+    return { error: "Sales must end after they start." };
   const stepCounts = v.steps.map((s) => s.afterSold);
   if (new Set(stepCounts).size !== stepCounts.length) return { error: "Each price step needs a different seat count." };
   if (stepCounts.some((n) => n >= v.capacity)) return { error: "Price steps must kick in before the tier sells out." };
@@ -72,7 +85,9 @@ export async function saveTier(eventId: string, input: TierInput): Promise<Actio
     }
     await tx.priceStep.deleteMany({ where: { ticketTypeId: id } });
     if (v.steps.length) {
-      await tx.priceStep.createMany({ data: v.steps.map((s) => ({ ticketTypeId: id, afterSold: s.afterSold, pricePaise: rupeesToPaise(s.priceRupees) })) });
+      await tx.priceStep.createMany({
+        data: v.steps.map((s) => ({ ticketTypeId: id, afterSold: s.afterSold, pricePaise: rupeesToPaise(s.priceRupees) })),
+      });
     }
     // Raising capacity on a sold-out tier offers the new seats to the waitlist first.
     await offerWaitlist(tx, id, new Date());
@@ -99,7 +114,10 @@ const compSchema = z.object({
   qty: z.coerce.number().int().min(1).max(20),
   buyerName: z.string().trim().min(2, "Enter the guest's name.").max(80),
   email: z.string().trim().toLowerCase().email("Enter a valid email."),
-  phone: z.string().trim().regex(/^[6-9]\d{9}$/, "Enter a 10-digit Indian mobile number."),
+  phone: z
+    .string()
+    .trim()
+    .regex(/^[6-9]\d{9}$/, "Enter a 10-digit Indian mobile number."),
 });
 
 /** Guest list / complimentary tickets. They use real seats, so they can't oversell either. */

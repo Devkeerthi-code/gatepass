@@ -45,7 +45,11 @@ export async function startPayment(orderId: string, details: BuyerDetails, promo
   if (!provider || !providerOrderId) {
     provider = await providerForOrg(order.event.orgId);
     try {
-      const created = await provider.createOrder({ amountPaise: order.amountPaise, receipt: order.id.slice(0, 40), notes: { gatepassOrderId: order.id } });
+      const created = await provider.createOrder({
+        amountPaise: order.amountPaise,
+        receipt: order.id.slice(0, 40),
+        notes: { gatepassOrderId: order.id },
+      });
       providerOrderId = created.providerOrderId;
     } catch (err) {
       const message = err instanceof PaymentProviderError ? err.message : "The payment service is unavailable.";
@@ -76,7 +80,9 @@ export async function confirmFromCheckout(input: CallbackInput): Promise<Confirm
   if (!order || order.providerOrderId !== input.providerOrderId) return { status: "NOT_FOUND" };
   const provider = await providerForRef(order.provider, order.event.orgId);
   if (!provider || !provider.verifyPaymentSignature(input)) return { status: "BAD_SIGNATURE" };
-  const outcome = await transaction((tx) => confirmPaid(tx, { providerOrderId: input.providerOrderId, providerPaymentId: input.providerPaymentId, now: new Date() }));
+  const outcome = await transaction((tx) =>
+    confirmPaid(tx, { providerOrderId: input.providerOrderId, providerPaymentId: input.providerPaymentId, now: new Date() }),
+  );
   if (outcome.status === "ISSUED") {
     track("order.paid", { eventId: order.eventId });
     emailTicketsLater(order.id);

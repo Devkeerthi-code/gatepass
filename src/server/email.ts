@@ -7,7 +7,8 @@ import { formatPaise } from "@/lib/money";
 
 type Email = { to: string; subject: string; html: string; text: string };
 
-const escapeHtml = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
+const escapeHtml = (s: string) =>
+  s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 
 /** Sends through Resend when RESEND_API_KEY is set; otherwise does nothing (links still work in the app). */
 export async function sendEmail(email: Email): Promise<boolean> {
@@ -51,13 +52,20 @@ export function emailTicketsLater(orderId: string): void {
   later(async () => {
     const order = await db.order.findUnique({
       where: { id: orderId },
-      include: { event: true, ticketType: { select: { name: true } }, tickets: { orderBy: { seq: "asc" }, select: { id: true, serial: true } } },
+      include: {
+        event: true,
+        ticketType: { select: { name: true } },
+        tickets: { orderBy: { seq: "asc" }, select: { id: true, serial: true } },
+      },
     });
     if (!order || order.status !== "PAID" || !order.email) return;
     const { APP_URL } = env();
     const e = order.event;
     const when = `${formatDay(e.startsAt)} · doors ${formatTime(e.doorsAt ?? e.startsAt)}`;
-    const links = order.tickets.map((t, i) => ({ label: `Ticket ${i + 1} of ${order.tickets.length} · ${t.serial}`, url: `${APP_URL}/t/${t.id}` }));
+    const links = order.tickets.map((t, i) => ({
+      label: `Ticket ${i + 1} of ${order.tickets.length} · ${t.serial}`,
+      url: `${APP_URL}/t/${t.id}`,
+    }));
     const html = layout(
       `You're in: ${escapeHtml(e.name)}`,
       `<p style="margin:0 0 12px">${escapeHtml(when)}<br>${escapeHtml(e.venue)}${e.venueAddress ? `, ${escapeHtml(e.venueAddress)}` : ""}</p>

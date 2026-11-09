@@ -26,7 +26,11 @@ export async function refundOrder(
   });
   if (order.event.orgId !== input.orgId) return { ok: false, reason: "NOT_FOUND", message: "Order not found." };
   if (order.status !== "PAID" && order.status !== "NEEDS_REFUND") {
-    return { ok: false, reason: "NOT_REFUNDABLE", message: order.status === "REFUNDED" ? "Already refunded." : "Only paid orders can be refunded." };
+    return {
+      ok: false,
+      reason: "NOT_REFUNDABLE",
+      message: order.status === "REFUNDED" ? "Already refunded." : "Only paid orders can be refunded.",
+    };
   }
   if (order.tickets.some((t) => t.checkedInAt)) {
     return { ok: false, reason: "CHECKED_IN", message: "Someone on this order already entered, so it can't be refunded here." };
@@ -36,9 +40,20 @@ export async function refundOrder(
   const charged = order.amountPaise > 0 && !!order.providerPaymentId && order.provider !== "FREE";
   if (charged) {
     const provider = await input.providerFor(order.provider);
-    if (!provider) return { ok: false, reason: "PROVIDER", message: "The payment account that took this payment is no longer connected. Refund it from Razorpay directly." };
+    if (!provider)
+      return {
+        ok: false,
+        reason: "PROVIDER",
+        message: "The payment account that took this payment is no longer connected. Refund it from Razorpay directly.",
+      };
     try {
-      refundId = (await provider.refund({ providerPaymentId: order.providerPaymentId!, amountPaise: order.amountPaise, notes: { gatepassOrderId: order.id } })).refundId;
+      refundId = (
+        await provider.refund({
+          providerPaymentId: order.providerPaymentId!,
+          amountPaise: order.amountPaise,
+          notes: { gatepassOrderId: order.id },
+        })
+      ).refundId;
     } catch (err) {
       const message = err instanceof PaymentProviderError ? err.message : "The refund request failed.";
       return { ok: false, reason: "PROVIDER", message: `${message} Nothing was changed; try again.` };

@@ -18,9 +18,17 @@ export type EventStats = {
 /** Live numbers for the host dashboard. "People" counts admits, so a Group of 4 counts as 4. */
 export async function eventStats(eventId: string): Promise<EventStats> {
   const [types, paidByType, heldByType, money, tickets, entries, recent, needsRefund] = await Promise.all([
-    db.ticketType.findMany({ where: { eventId }, orderBy: { sortOrder: "asc" }, select: { id: true, name: true, capacity: true, admits: true } }),
+    db.ticketType.findMany({
+      where: { eventId },
+      orderBy: { sortOrder: "asc" },
+      select: { id: true, name: true, capacity: true, admits: true },
+    }),
     db.order.groupBy({ by: ["ticketTypeId"], where: { eventId, status: "PAID" }, _sum: { qty: true } }),
-    db.order.groupBy({ by: ["ticketTypeId"], where: { eventId, status: "PENDING", holdExpiresAt: { gt: new Date() } }, _sum: { qty: true } }),
+    db.order.groupBy({
+      by: ["ticketTypeId"],
+      where: { eventId, status: "PENDING", holdExpiresAt: { gt: new Date() } },
+      _sum: { qty: true },
+    }),
     db.order.aggregate({ where: { eventId, status: "PAID" }, _sum: { amountPaise: true, discountPaise: true }, _count: { _all: true } }),
     db.ticket.aggregate({ where: { eventId, order: { status: "PAID" } }, _sum: { admits: true }, _count: { _all: true } }),
     db.$queryRaw<{ bucket: Date; people: number }[]>`
@@ -31,7 +39,13 @@ export async function eventStats(eventId: string): Promise<EventStats> {
       where: { eventId, checkedInAt: { not: null } },
       orderBy: { checkedInAt: "desc" },
       take: 8,
-      select: { id: true, holderName: true, checkedInAt: true, ticketType: { select: { name: true } }, checkedInBy: { select: { name: true } } },
+      select: {
+        id: true,
+        holderName: true,
+        checkedInAt: true,
+        ticketType: { select: { name: true } },
+        checkedInBy: { select: { name: true } },
+      },
     }),
     db.order.count({ where: { eventId, status: "NEEDS_REFUND" } }),
   ]);
@@ -49,7 +63,13 @@ export async function eventStats(eventId: string): Promise<EventStats> {
     peopleSold: tickets._sum.admits ?? 0,
     peopleIn,
     entries: entries.map((e) => ({ bucket: e.bucket.toISOString(), people: e.people })),
-    recent: recent.map((r) => ({ id: r.id, name: r.holderName, type: r.ticketType.name, at: r.checkedInAt!.toISOString(), by: r.checkedInBy?.name ?? "—" })),
+    recent: recent.map((r) => ({
+      id: r.id,
+      name: r.holderName,
+      type: r.ticketType.name,
+      at: r.checkedInAt!.toISOString(),
+      by: r.checkedInBy?.name ?? "—",
+    })),
     needsRefund,
     generatedAt: new Date().toISOString(),
   };

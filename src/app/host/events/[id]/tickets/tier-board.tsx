@@ -47,7 +47,10 @@ const BLANK: Draft = {
 const PRESETS: { label: string; draft: Partial<Draft> }[] = [
   { label: "General admission", draft: { name: "General Admission", priceRupees: 499, capacity: 500 } },
   { label: "Early bird", draft: { name: "Early Bird", priceRupees: 349, capacity: 100, perOrderLimit: 4 } },
-  { label: "Group of 4", draft: { name: "Group of 4", priceRupees: 1599, capacity: 50, admits: 4, perOrderLimit: 2, description: "One QR admits four" } },
+  {
+    label: "Group of 4",
+    draft: { name: "Group of 4", priceRupees: 1599, capacity: 50, admits: 4, perOrderLimit: 2, description: "One QR admits four" },
+  },
   { label: "Free student entry", draft: { name: "Student Free", priceRupees: 0, capacity: 100, perOrderLimit: 1 } },
   { label: "VIP flash drop", draft: { name: "VIP", priceRupees: 1999, capacity: 40, isDrop: true, perOrderLimit: 2 } },
 ];
@@ -124,14 +127,24 @@ export function TierBoard({ eventId, tiers, ticketStock }: { eventId: string; ti
               </TicketCard>
               <div className="row wrap xs muted" style={{ marginTop: 8 }}>
                 {t.steps.length ? <span className="chip">Price ladder · {t.steps.length} steps</span> : null}
-                {t.isDrop && t.salesStart ? <span className="chip chip-accent">Drops {formatShort(fromLocalInput(t.salesStart))} · {t.dropAlerts} waiting</span> : null}
+                {t.isDrop && t.salesStart ? (
+                  <span className="chip chip-accent">
+                    Drops {formatShort(fromLocalInput(t.salesStart))} · {t.dropAlerts} waiting
+                  </span>
+                ) : null}
                 {t.accessCode ? <span className="chip">Code {t.accessCode}</span> : null}
                 {t.waitlist ? <span className="chip">{t.waitlist} on waitlist</span> : null}
                 <span className="grow" />
                 <button className="btn btn-sm" type="button" onClick={() => open(toDraft(t))}>
                   Edit
                 </button>
-                <button className="btn btn-ghost btn-sm" type="button" onClick={() => remove(t.id)} disabled={pending} aria-label={`Delete ${t.name}`}>
+                <button
+                  className="btn btn-ghost btn-sm"
+                  type="button"
+                  onClick={() => remove(t.id)}
+                  disabled={pending}
+                  aria-label={`Delete ${t.name}`}
+                >
                   <Icon name="trash" small />
                 </button>
               </div>
@@ -174,17 +187,42 @@ export function TierBoard({ eventId, tiers, ticketStock }: { eventId: string; ti
             <div className="dlg-b">
               <div className="grid-2">
                 <Num label="Name" text value={draft.name} onChange={(v) => setDraft({ ...draft, name: String(v) })} />
-                <Num label="Price (₹)" value={draft.priceRupees} onChange={(v) => setDraft({ ...draft, priceRupees: Number(v) })} hint="0 = free, skips payment" />
+                <Num
+                  label="Price (₹)"
+                  value={draft.priceRupees}
+                  onChange={(v) => setDraft({ ...draft, priceRupees: Number(v) })}
+                  hint="0 = free, skips payment"
+                />
               </div>
-              <Num label="Short description" text value={draft.description} onChange={(v) => setDraft({ ...draft, description: String(v) })} hint="e.g. First 3 rows, separate queue" />
+              <Num
+                label="Short description"
+                text
+                value={draft.description}
+                onChange={(v) => setDraft({ ...draft, description: String(v) })}
+                hint="e.g. First 3 rows, separate queue"
+              />
               <div className="grid-3">
                 <Num label="Seats" value={draft.capacity} onChange={(v) => setDraft({ ...draft, capacity: Number(v) })} />
                 <Num label="Admits per ticket" value={draft.admits} onChange={(v) => setDraft({ ...draft, admits: Number(v) })} />
                 <Num label="Max per order" value={draft.perOrderLimit} onChange={(v) => setDraft({ ...draft, perOrderLimit: Number(v) })} />
               </div>
               <div className="grid-2">
-                <Num label="Sales start" type="datetime-local" text value={draft.salesStart} onChange={(v) => setDraft({ ...draft, salesStart: String(v) })} hint="Empty = on sale now" />
-                <Num label="Sales end" type="datetime-local" text value={draft.salesEnd} onChange={(v) => setDraft({ ...draft, salesEnd: String(v) })} hint="Empty = until sold out" />
+                <Num
+                  label="Sales start"
+                  type="datetime-local"
+                  text
+                  value={draft.salesStart}
+                  onChange={(v) => setDraft({ ...draft, salesStart: String(v) })}
+                  hint="Empty = on sale now"
+                />
+                <Num
+                  label="Sales end"
+                  type="datetime-local"
+                  text
+                  value={draft.salesEnd}
+                  onChange={(v) => setDraft({ ...draft, salesEnd: String(v) })}
+                  hint="Empty = until sold out"
+                />
               </div>
               <label className="row small">
                 <span className="switch">
@@ -202,7 +240,9 @@ export function TierBoard({ eventId, tiers, ticketStock }: { eventId: string; ti
               />
               <div className="field">
                 <span className="flabel">Price ladder</span>
-                <span className="hint">The price steps up automatically as seats sell. Each buyer pays the price shown when they hold seats.</span>
+                <span className="hint">
+                  The price steps up automatically as seats sell. Each buyer pays the price shown when they hold seats.
+                </span>
                 {draft.steps.map((s, i) => (
                   <div key={i} className="row">
                     <span className="small">After</span>
@@ -213,7 +253,12 @@ export function TierBoard({ eventId, tiers, ticketStock }: { eventId: string; ti
                       min={1}
                       aria-label="Seats sold"
                       value={s.afterSold}
-                      onChange={(e) => setDraft({ ...draft, steps: draft.steps.map((x, j) => (j === i ? { ...x, afterSold: Number(e.target.value) } : x)) })}
+                      onChange={(e) =>
+                        setDraft({
+                          ...draft,
+                          steps: draft.steps.map((x, j) => (j === i ? { ...x, afterSold: Number(e.target.value) } : x)),
+                        })
+                      }
                     />
                     <span className="small">sold, price ₹</span>
                     <input
@@ -223,9 +268,19 @@ export function TierBoard({ eventId, tiers, ticketStock }: { eventId: string; ti
                       min={0}
                       aria-label="New price in rupees"
                       value={s.priceRupees}
-                      onChange={(e) => setDraft({ ...draft, steps: draft.steps.map((x, j) => (j === i ? { ...x, priceRupees: Number(e.target.value) } : x)) })}
+                      onChange={(e) =>
+                        setDraft({
+                          ...draft,
+                          steps: draft.steps.map((x, j) => (j === i ? { ...x, priceRupees: Number(e.target.value) } : x)),
+                        })
+                      }
                     />
-                    <button type="button" className="btn btn-ghost btn-sm" aria-label="Remove step" onClick={() => setDraft({ ...draft, steps: draft.steps.filter((_, j) => j !== i) })}>
+                    <button
+                      type="button"
+                      className="btn btn-ghost btn-sm"
+                      aria-label="Remove step"
+                      onClick={() => setDraft({ ...draft, steps: draft.steps.filter((_, j) => j !== i) })}
+                    >
                       <Icon name="x" small />
                     </button>
                   </div>
@@ -239,7 +294,13 @@ export function TierBoard({ eventId, tiers, ticketStock }: { eventId: string; ti
                       const last = draft.steps.at(-1);
                       setDraft({
                         ...draft,
-                        steps: [...draft.steps, { afterSold: (last?.afterSold ?? 0) + Math.max(1, Math.floor(draft.capacity / 4)), priceRupees: (last?.priceRupees ?? draft.priceRupees) + 200 }],
+                        steps: [
+                          ...draft.steps,
+                          {
+                            afterSold: (last?.afterSold ?? 0) + Math.max(1, Math.floor(draft.capacity / 4)),
+                            priceRupees: (last?.priceRupees ?? draft.priceRupees) + 200,
+                          },
+                        ],
                       });
                     }}
                   >

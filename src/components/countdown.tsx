@@ -30,9 +30,13 @@ export function Countdown({ to, onDone, className = "clock" }: { to: string; onD
 
   useEffect(() => {
     const target = new Date(to).getTime();
-    const nudge = new Spring(0, (v) => {
-      if (ref.current) ref.current.style.transform = `translateY(${v}px)`;
-    }, { stiffness: 900, damping: 30 });
+    const nudge = new Spring(
+      0,
+      (v) => {
+        if (ref.current) ref.current.style.transform = `translateY(${v}px)`;
+      },
+      { stiffness: 900, damping: 30 },
+    );
     const tick = () => {
       const ms = target - Date.now();
       setLeft(ms);

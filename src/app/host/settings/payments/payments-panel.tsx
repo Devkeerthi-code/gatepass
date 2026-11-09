@@ -50,10 +50,22 @@ export function PaymentsPanel({
     effective === "LIVE"
       ? { title: `Your Razorpay account · LIVE (${live.key})`, tone: "notice-no", note: "Real money. Buyers are charged." }
       : effective === "TEST"
-        ? { title: `Your Razorpay test account (${test.key})`, tone: "notice-ok", note: "Use Razorpay test cards/UPI. No real money moves." }
+        ? {
+            title: `Your Razorpay test account (${test.key})`,
+            tone: "notice-ok",
+            note: "Use Razorpay test cards/UPI. No real money moves.",
+          }
         : effective === "ENV"
-          ? { title: `Server keys from .env (${envKey})`, tone: "notice", note: "Set by whoever deployed GatePass. Connect your own account below to collect into it." }
-          : { title: "Mock payments (simulator)", tone: "notice-test", note: "Nothing is charged. Connect Razorpay to take real test payments." };
+          ? {
+              title: `Server keys from .env (${envKey})`,
+              tone: "notice",
+              note: "Set by whoever deployed GatePass. Connect your own account below to collect into it.",
+            }
+          : {
+              title: "Mock payments (simulator)",
+              tone: "notice-test",
+              note: "Nothing is charged. Connect Razorpay to take real test payments.",
+            };
 
   const current = effective === "ENV" ? "MOCK" : effective;
 
@@ -89,13 +101,18 @@ export function PaymentsPanel({
             </label>
           ))}
         </div>
-        <p className="xs muted">Razorpay Test unlocks once test keys are verified. Live unlocks when every item in the checklist is done.</p>
+        <p className="xs muted">
+          Razorpay Test unlocks once test keys are verified. Live unlocks when every item in the checklist is done.
+        </p>
         <dialog ref={liveDialog} className="sheet" aria-labelledby="live-h">
           <div className="dlg-h">
             <h2 id="live-h">Switch to Live payments?</h2>
           </div>
           <div className="dlg-b small">
-            <p>From now on, buyers are charged real money into your Razorpay account ({live.key}). Orders already in checkout keep their current mode.</p>
+            <p>
+              From now on, buyers are charged real money into your Razorpay account ({live.key}). Orders already in checkout keep their
+              current mode.
+            </p>
           </div>
           <div className="dlg-f">
             <button type="button" className="btn" onClick={() => liveDialog.current?.close()} disabled={pending}>
@@ -109,7 +126,12 @@ export function PaymentsPanel({
         </dialog>
       </div>
 
-      <KeyCard mode="TEST" state={test} title="Razorpay test keys" hint="Dashboard → Account & Settings → API Keys, with Test mode on. Saving verified test keys switches new checkouts to your account automatically." />
+      <KeyCard
+        mode="TEST"
+        state={test}
+        title="Razorpay test keys"
+        hint="Dashboard → Account & Settings → API Keys, with Test mode on. Saving verified test keys switches new checkouts to your account automatically."
+      />
 
       <div className="card stack">
         <div className="sec-h">
@@ -117,18 +139,26 @@ export function PaymentsPanel({
           <span className="chip">Needed for Live</span>
         </div>
         <p className="small muted">
-          If a buyer closes the tab right after paying, Razorpay tells GatePass directly. In Razorpay: Account &amp; Settings → Webhooks → Add new webhook, paste this URL, pick the
+          If a buyer closes the tab right after paying, Razorpay tells GatePass directly. In Razorpay: Account &amp; Settings → Webhooks →
+          Add new webhook, paste this URL, pick the
           <span className="mono"> payment.captured</span> event, and set a secret. Paste the same secret into the key forms here.
         </p>
         <CopyBox value={webhookUrl} />
       </div>
 
-      <KeyCard mode="LIVE" state={live} title="Razorpay live keys" hint="Only after Razorpay has activated your account (KYC). Live stays locked until the checklist below is complete." />
+      <KeyCard
+        mode="LIVE"
+        state={live}
+        title="Razorpay live keys"
+        hint="Only after Razorpay has activated your account (KYC). Live stays locked until the checklist below is complete."
+      />
 
       <div className="card stack">
         <div className="sec-h">
           <h2>Before you go live</h2>
-          <span className={`chip ${liveReady ? "chip-ok" : ""}`}>{checks.filter((c) => c.done).length} / {checks.length}</span>
+          <span className={`chip ${liveReady ? "chip-ok" : ""}`}>
+            {checks.filter((c) => c.done).length} / {checks.length}
+          </span>
         </div>
         <ul className="checklist" role="list">
           {checks.map((c) => (
@@ -201,17 +231,43 @@ function KeyCard({ mode, state, title, hint }: { mode: "TEST" | "LIVE"; state: K
           <div className="grid-2">
             <div className="field">
               <label htmlFor={`${mode}-id`}>Key ID</label>
-              <input id={`${mode}-id`} className="input mono" placeholder={`${prefix}…`} autoComplete="off" spellCheck={false} value={form.keyId} onChange={(e) => setForm({ ...form, keyId: e.target.value })} />
+              <input
+                id={`${mode}-id`}
+                className="input mono"
+                placeholder={`${prefix}…`}
+                autoComplete="off"
+                spellCheck={false}
+                value={form.keyId}
+                onChange={(e) => setForm({ ...form, keyId: e.target.value })}
+              />
             </div>
             <div className="field">
               <label htmlFor={`${mode}-secret`}>Key Secret</label>
-              <input id={`${mode}-secret`} className="input mono" type="password" autoComplete="off" value={form.keySecret} onChange={(e) => setForm({ ...form, keySecret: e.target.value })} />
+              <input
+                id={`${mode}-secret`}
+                className="input mono"
+                type="password"
+                autoComplete="off"
+                value={form.keySecret}
+                onChange={(e) => setForm({ ...form, keySecret: e.target.value })}
+              />
             </div>
           </div>
           <div className="field">
             <label htmlFor={`${mode}-wh`}>Webhook secret {mode === "TEST" ? "(optional)" : ""}</label>
-            <input id={`${mode}-wh`} className="input mono" type="password" autoComplete="off" value={form.webhookSecret} onChange={(e) => setForm({ ...form, webhookSecret: e.target.value })} />
-            <span className="hint">{state.webhook ? "A webhook secret is saved. Leave empty to keep it." : "The secret you typed when creating the webhook in Razorpay."}</span>
+            <input
+              id={`${mode}-wh`}
+              className="input mono"
+              type="password"
+              autoComplete="off"
+              value={form.webhookSecret}
+              onChange={(e) => setForm({ ...form, webhookSecret: e.target.value })}
+            />
+            <span className="hint">
+              {state.webhook
+                ? "A webhook secret is saved. Leave empty to keep it."
+                : "The secret you typed when creating the webhook in Razorpay."}
+            </span>
           </div>
           {error ? (
             <p className="notice notice-no small" role="alert">
@@ -229,7 +285,9 @@ function KeyCard({ mode, state, title, hint }: { mode: "TEST" | "LIVE"; state: K
               </button>
             ) : null}
           </div>
-          <p className="xs muted">Keys are checked with Razorpay before saving, then stored encrypted (AES-256-GCM). The secret is never shown again.</p>
+          <p className="xs muted">
+            Keys are checked with Razorpay before saving, then stored encrypted (AES-256-GCM). The secret is never shown again.
+          </p>
         </form>
       ) : (
         <div className="row wrap">

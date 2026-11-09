@@ -67,10 +67,7 @@ export type HoldInput = {
 export type HoldError = "NOT_FOUND" | "NOT_ON_SALE" | "SALE_ENDED" | "LIMIT" | "ACCESS_CODE" | "SOLD_OUT";
 export type HoldResult = { ok: true; orderId: string } | { ok: false; error: HoldError; message: string };
 
-function saleWindowError(
-  tt: { salesStart: Date | null; salesEnd: Date | null },
-  now: Date,
-): { error: HoldError; message: string } | null {
+function saleWindowError(tt: { salesStart: Date | null; salesEnd: Date | null }, now: Date): { error: HoldError; message: string } | null {
   if (tt.salesStart && now < tt.salesStart) return { error: "NOT_ON_SALE", message: "This ticket isn't on sale yet." };
   if (tt.salesEnd && now > tt.salesEnd) return { error: "SALE_ENDED", message: "Sales for this ticket have closed." };
   return null;

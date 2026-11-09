@@ -33,7 +33,9 @@ async function EventList() {
           <TicketCard name="Your first gig" kicker="Admit everyone" price="₹—" serial="No. 000000" stock="lilac" pattern="plain" />
         </div>
         <h2>No concerts yet</h2>
-        <p className="muted small">Create one, add ticket types, publish, and share the link. Payments use Mock mode until you connect Razorpay.</p>
+        <p className="muted small">
+          Create one, add ticket types, publish, and share the link. Payments use Mock mode until you connect Razorpay.
+        </p>
         <form action={createEvent}>
           <SubmitButton pendingLabel="Creating…">
             <Icon name="plus" /> New concert

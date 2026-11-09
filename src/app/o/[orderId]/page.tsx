@@ -66,7 +66,9 @@ async function Order({ params, searchParams }: Props) {
           This order was refunded
         </h1>
         <p className="small muted">
-          {order.amountPaise ? `${formatPaise(order.amountPaise)} was sent back to your original payment method${order.refundedAt ? ` on ${formatDay(order.refundedAt)}` : ""}. Banks usually take 5–7 working days.` : "These free tickets were cancelled by the organiser."}{" "}
+          {order.amountPaise
+            ? `${formatPaise(order.amountPaise)} was sent back to your original payment method${order.refundedAt ? ` on ${formatDay(order.refundedAt)}` : ""}. Banks usually take 5–7 working days.`
+            : "These free tickets were cancelled by the organiser."}{" "}
           The QR codes no longer work.
         </p>
         <Link className="btn" href={`/c/${event.slug}`}>
@@ -84,8 +86,8 @@ async function Order({ params, searchParams }: Props) {
           Paid, but the seats were gone
         </h1>
         <p className="small muted">
-          Your payment arrived after your hold expired and the last seats sold. No ticket was issued, and the organiser has been flagged to refund{" "}
-          {formatPaise(order.amountPaise)}. Keep this page as proof: order {order.id.slice(0, 8)}.
+          Your payment arrived after your hold expired and the last seats sold. No ticket was issued, and the organiser has been flagged to
+          refund {formatPaise(order.amountPaise)}. Keep this page as proof: order {order.id.slice(0, 8)}.
         </p>
       </div>
     );
@@ -94,13 +96,15 @@ async function Order({ params, searchParams }: Props) {
   return (
     <div className="stack">
       <p className="label" style={{ color: "var(--accent)" }}>
-        Paid · {order.tickets.length} ticket{order.tickets.length > 1 ? "s" : ""} · {order.amountPaise ? formatPaise(order.amountPaise) : "Free"}
+        Paid · {order.tickets.length} ticket{order.tickets.length > 1 ? "s" : ""} ·{" "}
+        {order.amountPaise ? formatPaise(order.amountPaise) : "Free"}
       </p>
       <h1 className="display" style={{ fontSize: "var(--t-2xl)" }}>
         You&apos;re in, {order.buyerName.split(" ")[0]}.
       </h1>
       <p className="small muted">
-        {formatDay(event.startsAt)} · {formatTime(event.doorsAt ?? event.startsAt)} · {event.venue}. Open each ticket below and keep the link. You can find them again with your email and phone.
+        {formatDay(event.startsAt)} · {formatTime(event.doorsAt ?? event.startsAt)} · {event.venue}. Open each ticket below and keep the
+        link. You can find them again with your email and phone.
       </p>
       <ul className="stack" role="list" style={{ padding: 0, listStyle: "none" }}>
         {order.tickets.map((t, i) => (
@@ -126,7 +130,7 @@ async function Order({ params, searchParams }: Props) {
 
 export default function OrderPage(props: Props) {
   return (
-    <main className="container narrow">
+    <main id="main" className="container narrow">
       <Suspense fallback={<div className="sk" style={{ height: 320, borderRadius: 18 }} />}>
         <Order {...props} />
       </Suspense>

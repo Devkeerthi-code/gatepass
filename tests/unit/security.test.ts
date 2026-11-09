@@ -63,7 +63,10 @@ describe("Razorpay checkout signature", () => {
 });
 
 describe("webhook signature", () => {
-  const body = JSON.stringify({ event: "payment.captured", payload: { payment: { entity: { id: "pay_1", order_id: "order_1", amount: 49900, status: "captured" } } } });
+  const body = JSON.stringify({
+    event: "payment.captured",
+    payload: { payment: { entity: { id: "pay_1", order_id: "order_1", amount: 49900, status: "captured" } } },
+  });
 
   it("accepts the exact body and rejects any change", () => {
     const sig = hmacHex("whsec", body);

@@ -7,6 +7,7 @@ import { Icon } from "@/components/icon";
 import { STOCKS, parseTicketStyle, TicketCard, type TicketPattern, type TicketStock } from "@/components/ticket-card";
 import { useToast } from "@/components/toaster";
 import { formatDay, fromLocalInput, formatTime } from "@/lib/format";
+import { contrastRatio } from "@/lib/accent";
 import { slugify } from "@/lib/slug";
 import { removePoster, saveEvent, setPublished, uploadPoster, type EventInput } from "../../actions";
 
@@ -32,7 +33,14 @@ type Draft = {
 
 const TABS = ["Details", "Lineup", "Look & ticket", "FAQ", "Checkout"] as const;
 type Tab = (typeof TABS)[number];
-const ACCENTS = ["#D4136F", "#2B3FE0", "#E4572E", "#0E8A6A", "#7A3FE0", "#16130F"];
+const ACCENTS = [
+  { hex: "#D4136F", name: "Riso pink" },
+  { hex: "#2B3FE0", name: "Stage blue" },
+  { hex: "#C8431F", name: "Ember" },
+  { hex: "#0B7559", name: "Forest" },
+  { hex: "#7A3FE0", name: "Violet" },
+  { hex: "#16130F", name: "Ink" },
+];
 const PATTERNS: TicketPattern[] = ["guilloche", "halftone", "stripes", "plain"];
 
 function safeDate(v: string): Date | null {
@@ -135,7 +143,13 @@ export function Builder({
               View page <Icon name="external" small />
             </Link>
           ) : null}
-          <button className="btn btn-sm" type="button" onClick={togglePublish} disabled={publishing || dirty} title={dirty ? "Save first" : undefined}>
+          <button
+            className="btn btn-sm"
+            type="button"
+            onClick={togglePublish}
+            disabled={publishing || dirty}
+            title={dirty ? "Save first" : undefined}
+          >
             {publishing ? <span className="spinner" aria-hidden="true" /> : null}
             {status === "PUBLISHED" ? "Unpublish" : "Publish"}
           </button>
@@ -172,15 +186,32 @@ export function Builder({
             <div className="stack">
               <div className="grid-2">
                 <Text label="Concert name" value={d.name} onChange={(v) => set("name", v)} />
-                <Text label="Page address" prefix="/c/" value={d.slug} onChange={(v) => set("slug", slugify(v))} hint="Lowercase, dashes." />
+                <Text
+                  label="Page address"
+                  prefix="/c/"
+                  value={d.slug}
+                  onChange={(v) => set("slug", slugify(v))}
+                  hint="Lowercase, dashes."
+                />
               </div>
               <Text label="Tagline" value={d.tagline} onChange={(v) => set("tagline", v)} hint="One line under the title. Optional." />
-              <Area label="Description" value={d.description} onChange={(v) => set("description", v)} hint="What's the night like? Who should come?" />
+              <Area
+                label="Description"
+                value={d.description}
+                onChange={(v) => set("description", v)}
+                hint="What's the night like? Who should come?"
+              />
               <div className="grid-2">
                 <Text label="Starts" type="datetime-local" value={d.startsAt} onChange={(v) => set("startsAt", v)} />
                 <Text label="Ends" type="datetime-local" value={d.endsAt} onChange={(v) => set("endsAt", v)} />
               </div>
-              <Text label="Doors open" type="datetime-local" value={d.doorsAt} onChange={(v) => set("doorsAt", v)} hint="Optional. Shown on tickets." />
+              <Text
+                label="Doors open"
+                type="datetime-local"
+                value={d.doorsAt}
+                onChange={(v) => set("doorsAt", v)}
+                hint="Optional. Shown on tickets."
+              />
               <div className="grid-2">
                 <Text label="Venue" value={d.venue} onChange={(v) => set("venue", v)} />
                 <Text label="Address" value={d.venueAddress} onChange={(v) => set("venueAddress", v)} />
@@ -192,7 +223,13 @@ export function Builder({
                   <label className="btn btn-sm">
                     {uploading ? <span className="spinner" aria-hidden="true" /> : <Icon name="upload" small />}
                     {hasPoster ? "Replace image" : "Upload image"}
-                    <input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={(e) => onPoster(e.target.files?.[0])} disabled={uploading} />
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      className="sr-only"
+                      onChange={(e) => onPoster(e.target.files?.[0])}
+                      disabled={uploading}
+                    />
                   </label>
                   {hasPoster ? (
                     <button
@@ -210,13 +247,20 @@ export function Builder({
                     </button>
                   ) : null}
                 </div>
-                <span className="hint">JPG/PNG/WebP under 1.5 MB. Without one, the page uses a type-only gig poster in your accent colour.</span>
+                <span className="hint">
+                  JPG/PNG/WebP under 1.5 MB. Without one, the page uses a type-only gig poster in your accent colour.
+                </span>
                 {hasPoster ? (
                   // eslint-disable-next-line @next/next/no-img-element -- poster is served from our own DB route with cache-busting
                   <img src={`/api/poster/${eventId}?v=${posterVersion}`} alt="Current poster" className="poster-thumb" />
                 ) : null}
               </div>
-              <Area label="Refund policy" value={d.refundPolicy} onChange={(v) => set("refundPolicy", v)} hint="Shown at checkout. Required before taking live payments." />
+              <Area
+                label="Refund policy"
+                value={d.refundPolicy}
+                onChange={(v) => set("refundPolicy", v)}
+                hint="Shown at checkout. Required before taking live payments."
+              />
             </div>
           ) : null}
 
@@ -230,7 +274,12 @@ export function Builder({
               render={(a, update) => (
                 <div className="grid-3">
                   <Text label="Artist" value={a.name} onChange={(v) => update({ ...a, name: v })} />
-                  <Select label="Billing" value={a.billing} options={["Headline", "Support", "Opener", "DJ", "Guest"]} onChange={(v) => update({ ...a, billing: v })} />
+                  <Select
+                    label="Billing"
+                    value={a.billing}
+                    options={["Headline", "Support", "Opener", "DJ", "Guest"]}
+                    onChange={(v) => update({ ...a, billing: v })}
+                  />
                   <Text label="Set time" type="datetime-local" value={a.startsAt} onChange={(v) => update({ ...a, startsAt: v })} />
                 </div>
               )}
@@ -244,22 +293,34 @@ export function Builder({
                 <div className="row wrap" role="radiogroup" aria-label="Accent colour">
                   {ACCENTS.map((c) => (
                     <button
-                      key={c}
+                      key={c.hex}
                       type="button"
                       className="swatch"
-                      style={{ background: c }}
+                      style={{ background: c.hex }}
                       role="radio"
-                      aria-checked={d.accentHex.toUpperCase() === c}
-                      aria-label={c}
-                      onClick={() => set("accentHex", c)}
+                      aria-checked={d.accentHex.toUpperCase() === c.hex}
+                      aria-label={c.name}
+                      title={c.name}
+                      onClick={() => set("accentHex", c.hex)}
                     />
                   ))}
                   <label className="btn btn-sm">
                     Custom
-                    <input type="color" className="sr-only" value={d.accentHex} onChange={(e) => set("accentHex", e.target.value.toUpperCase())} />
+                    <input
+                      type="color"
+                      className="sr-only"
+                      aria-label="Custom accent colour"
+                      value={d.accentHex}
+                      onChange={(e) => set("accentHex", e.target.value.toUpperCase())}
+                    />
                   </label>
                 </div>
-                <span className="hint">Used on your concert page and poster. Keep it dark enough for white text.</span>
+                <span className="hint">
+                  Used on your concert page and poster. Button text switches to dark automatically on light colours
+                  {contrastRatio(d.accentHex, "#fffdf8") < 3
+                    ? " — this one is very light, so it will be hard to see on the paper background."
+                    : "."}
+                </span>
               </div>
               <div className="field">
                 <span className="flabel">Ticket stock</span>
@@ -277,8 +338,18 @@ export function Builder({
                   ))}
                 </div>
               </div>
-              <Select label="Print pattern" value={style.pattern} options={PATTERNS} onChange={(v) => set("ticketStock", `${style.stock}:${v}`)} />
-              <Text label="Serial prefix" value={d.serialPrefix} onChange={(v) => set("serialPrefix", v.toUpperCase().slice(0, 6))} hint="Printed on every ticket, e.g. NS27-4F2A-01." />
+              <Select
+                label="Print pattern"
+                value={style.pattern}
+                options={PATTERNS}
+                onChange={(v) => set("ticketStock", `${style.stock}:${v}`)}
+              />
+              <Text
+                label="Serial prefix"
+                value={d.serialPrefix}
+                onChange={(v) => set("serialPrefix", v.toUpperCase().slice(0, 6))}
+                hint="Printed on every ticket, e.g. NS27-4F2A-01."
+              />
             </div>
           ) : null}
 
@@ -375,7 +446,14 @@ function Text({
       <label htmlFor={id}>{label}</label>
       <div className="row" style={{ gap: 0 }}>
         {prefix ? <span className="prefix mono xs">{prefix}</span> : null}
-        <input id={id} className="input" type={type} value={value} onChange={(e) => onChange(e.target.value)} aria-describedby={hint ? `${id}-h` : undefined} />
+        <input
+          id={id}
+          className="input"
+          type={type}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          aria-describedby={hint ? `${id}-h` : undefined}
+        />
       </div>
       {hint ? (
         <span className="hint" id={`${id}-h`}>
@@ -447,10 +525,21 @@ function ListEditor<T>({
             <button type="button" className="btn btn-ghost btn-sm" onClick={() => move(i, -1)} disabled={i === 0} aria-label="Move up">
               ↑
             </button>
-            <button type="button" className="btn btn-ghost btn-sm" onClick={() => move(i, 1)} disabled={i === items.length - 1} aria-label="Move down">
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm"
+              onClick={() => move(i, 1)}
+              disabled={i === items.length - 1}
+              aria-label="Move down"
+            >
               ↓
             </button>
-            <button type="button" className="btn btn-ghost btn-sm" onClick={() => onChange(items.filter((_, j) => j !== i))} aria-label="Remove">
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm"
+              onClick={() => onChange(items.filter((_, j) => j !== i))}
+              aria-label="Remove"
+            >
               <Icon name="trash" small />
             </button>
           </div>

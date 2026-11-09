@@ -30,7 +30,7 @@ async function Simulator({ params }: { params: Promise<{ orderId: string }> }) {
 
 export default function MockPayPage({ params }: { params: Promise<{ orderId: string }> }) {
   return (
-    <main className="mockpay">
+    <main id="main" className="mockpay">
       <Suspense fallback={<div className="sk" style={{ height: 420, borderRadius: 18 }} />}>
         <Simulator params={params} />
       </Suspense>

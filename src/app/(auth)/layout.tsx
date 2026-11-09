@@ -17,7 +17,9 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           Drag the pass. Let go.
         </p>
       </aside>
-      <main className="auth-main">{children}</main>
+      <main id="main" className="auth-main">
+        {children}
+      </main>
     </div>
   );
 }

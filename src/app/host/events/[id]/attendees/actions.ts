@@ -18,5 +18,8 @@ export async function refund(eventId: string, orderId: string): Promise<{ ok: bo
   if (!res.ok) return { ok: false, message: res.message };
   revalidatePath(`/host/events/${eventId}/attendees`);
   const seats = res.seatsReleased ? ` ${res.seatsReleased} seat${res.seatsReleased > 1 ? "s" : ""} went back on sale.` : "";
-  return { ok: true, message: `${res.refundId ? `Refund started (${res.refundId}).` : "Cancelled (free ticket, nothing to refund)."}${seats} The QR codes no longer work.` };
+  return {
+    ok: true,
+    message: `${res.refundId ? `Refund started (${res.refundId}).` : "Cancelled (free ticket, nothing to refund)."}${seats} The QR codes no longer work.`,
+  };
 }

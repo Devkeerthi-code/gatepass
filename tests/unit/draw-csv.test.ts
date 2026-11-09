@@ -37,7 +37,7 @@ describe("CSV export", () => {
   });
 
   it("neutralises spreadsheet formulas", () => {
-    expect(csvCell("=HYPERLINK(\"x\")")).toBe("\"'=HYPERLINK(\"\"x\"\")\"");
+    expect(csvCell('=HYPERLINK("x")')).toBe('"\'=HYPERLINK(""x"")"');
     expect(csvCell("+91 98765")).toBe("'+91 98765");
     expect(csvCell("@cmd")).toBe("'@cmd");
   });

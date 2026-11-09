@@ -47,9 +47,13 @@ export function BuyPanel({
   const seats = tier ? qty * tier.admits : 0;
 
   useEffect(() => {
-    roll.current = new Spring(0, (v) => {
-      if (qtyRef.current) qtyRef.current.style.transform = `translateY(${v}px)`;
-    }, { stiffness: 700, damping: 26 });
+    roll.current = new Spring(
+      0,
+      (v) => {
+        if (qtyRef.current) qtyRef.current.style.transform = `translateY(${v}px)`;
+      },
+      { stiffness: 700, damping: 26 },
+    );
   }, []);
 
   const changeQty = (dir: 1 | -1) => {
@@ -125,7 +129,14 @@ export function BuyPanel({
         <div className="field">
           <label htmlFor="access">Have a presale code?</label>
           <div className="input-group">
-            <input id="access" className="input mono" value={code} onChange={(e) => setCode(e.target.value)} placeholder="e.g. DITPRESALE" autoComplete="off" />
+            <input
+              id="access"
+              className="input mono"
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              placeholder="e.g. DITPRESALE"
+              autoComplete="off"
+            />
             <button type="button" className="btn" onClick={applyCode}>
               Unlock
             </button>
@@ -174,7 +185,13 @@ export function BuyPanel({
         </div>
         <button className="btn btn-accent btn-lg btn-block" type="button" onClick={buy} disabled={!tier || pending}>
           {pending ? <span className="spinner" aria-hidden="true" /> : null}
-          {pending ? "Holding seats…" : !tier ? "Nothing on sale right now" : tier.pricePaise ? `Hold ${seats} seat${seats > 1 ? "s" : ""} & continue` : "Claim free pass"}
+          {pending
+            ? "Holding seats…"
+            : !tier
+              ? "Nothing on sale right now"
+              : tier.pricePaise
+                ? `Hold ${seats} seat${seats > 1 ? "s" : ""} & continue`
+                : "Claim free pass"}
         </button>
         <p className="xs muted" style={{ textAlign: "center", marginTop: 6 }}>
           Seats are held for 10 minutes while you pay.
@@ -220,7 +237,13 @@ function TierTicket({
 
   const kicker = `${tier.admits > 1 ? `Admits ${tier.admits} · one QR` : "Admit one"}${tier.locked ? " · presale" : ""}`;
   const note =
-    tier.state === "ON_SALE" && tier.remaining <= 20 ? `${tier.remaining} LEFT` : tier.state === "NOT_YET" ? "NOT YET" : tier.state === "DROP" ? "DROP" : undefined;
+    tier.state === "ON_SALE" && tier.remaining <= 20
+      ? `${tier.remaining} LEFT`
+      : tier.state === "NOT_YET"
+        ? "NOT YET"
+        : tier.state === "DROP"
+          ? "DROP"
+          : undefined;
 
   return (
     <div ref={ref} className={`tier ${off ? "off" : ""}`}>
@@ -230,6 +253,7 @@ function TierTicket({
           <label className="hit" htmlFor={`t-${tier.id}`}>
             <span className="sr-only">
               {tier.name}, {tier.pricePaise ? formatPaise(tier.pricePaise) : "free"}
+              {tier.remaining <= 20 ? `, only ${tier.remaining} left` : ""}
             </span>
           </label>
         </>
@@ -240,6 +264,7 @@ function TierTicket({
         perks={tier.description}
         price={tier.pricePaise ? formatPaise(tier.pricePaise) : "FREE"}
         priceNote={note}
+        priceNoteHot={tier.state === "ON_SALE" && tier.remaining <= 20}
         serial={`No. ${serialPrefix}-${String(index + 1).padStart(3, "0")}`}
         stock={stock}
         pattern={pattern}
@@ -256,7 +281,11 @@ function TierTicket({
           </div>
         ) : null}
         {tier.state === "DROP" && tier.salesStart ? <DropRow tierId={tier.id} at={tier.salesStart} /> : null}
-        {tier.state === "NOT_YET" && tier.salesStart ? <p className="xs" style={{ marginTop: 8 }}>On sale {formatShort(tier.salesStart)}</p> : null}
+        {tier.state === "NOT_YET" && tier.salesStart ? (
+          <p className="xs" style={{ marginTop: 8 }}>
+            On sale {formatShort(tier.salesStart)}
+          </p>
+        ) : null}
         {tier.state === "SOLD_OUT" ? <WaitlistRow tierId={tier.id} tierName={tier.name} /> : null}
       </TicketCard>
     </div>
@@ -299,13 +328,25 @@ function DropRow({ tierId, at }: { tierId: string; at: string }) {
           <label className="sr-only" htmlFor={`drop-${tierId}`}>
             Email for the drop alert
           </label>
-          <input id={`drop-${tierId}`} className="input" type="email" required placeholder="you@college.edu" value={email} onChange={(e) => setEmail(e.target.value)} />
+          <input
+            id={`drop-${tierId}`}
+            className="input"
+            type="email"
+            required
+            placeholder="you@college.edu"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
           <button className="btn btn-ink" type="submit" disabled={pending}>
             {pending ? <span className="spinner" aria-hidden="true" /> : "Save"}
           </button>
         </form>
       ) : null}
-      {done ? <p className="xs" style={{ marginTop: 8 }}>{done}</p> : null}
+      {done ? (
+        <p className="xs" style={{ marginTop: 8 }}>
+          {done}
+        </p>
+      ) : null}
     </div>
   );
 }
@@ -352,7 +393,11 @@ function WaitlistRow({ tierId, tierName }: { tierId: string; tierName: string })
             ) : (
               <>
                 <p className="small muted">When someone&apos;s hold expires, the first person waiting gets the seats for 15 minutes.</p>
-                {error ? <p className="err" role="alert">{error}</p> : null}
+                {error ? (
+                  <p className="err" role="alert">
+                    {error}
+                  </p>
+                ) : null}
                 {(["name", "email", "phone"] as const).map((f) => (
                   <div key={f} className="field">
                     <label htmlFor={`wl-${tierId}-${f}`}>{f === "phone" ? "Mobile" : f[0].toUpperCase() + f.slice(1)}</label>
@@ -369,7 +414,12 @@ function WaitlistRow({ tierId, tierName }: { tierId: string; tierName: string })
                 ))}
                 <div className="field">
                   <label htmlFor={`wl-${tierId}-qty`}>Tickets needed</label>
-                  <select id={`wl-${tierId}-qty`} className="select" value={form.qty} onChange={(e) => setForm({ ...form, qty: Number(e.target.value) })}>
+                  <select
+                    id={`wl-${tierId}-qty`}
+                    className="select"
+                    value={form.qty}
+                    onChange={(e) => setForm({ ...form, qty: Number(e.target.value) })}
+                  >
                     {[1, 2, 3, 4].map((n) => (
                       <option key={n}>{n}</option>
                     ))}

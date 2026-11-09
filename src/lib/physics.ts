@@ -3,8 +3,7 @@
  * and free bodies with gravity. Everything becomes an instant state change under reduced motion.
  */
 
-export const prefersReducedMotion = () =>
-  typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+export const prefersReducedMotion = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
 
@@ -160,7 +159,8 @@ export function fling(el: HTMLElement, handle: HTMLElement = el): Cleanup {
   let originX = 0;
   let originY = 0;
   let active = false;
-  handle.style.touchAction = "none";
+  // pan-y: a vertical swipe still scrolls the page (the browser cancels the drag and it springs home).
+  handle.style.touchAction = "pan-y";
 
   const down = (e: PointerEvent) => {
     if ((e.target as HTMLElement).closest("button, a, input, [data-no-fling]")) return;
@@ -240,8 +240,7 @@ export function tear(
   let side = 0;
   const tracker = velocityTracker();
   stub.style.touchAction = "none";
-  const resist = (d: number) =>
-    d <= 0 ? d * 0.15 : d < threshold ? threshold * 0.32 * (1 - Math.exp(-d / (threshold * 0.6))) : d;
+  const resist = (d: number) => (d <= 0 ? d * 0.15 : d < threshold ? threshold * 0.32 * (1 - Math.exp(-d / (threshold * 0.6))) : d);
   const place = (main: number, cross: number, rot: number) => {
     stub.style.transform = `translate(${cross}px, ${main}px) rotate(${rot}deg)`;
   };

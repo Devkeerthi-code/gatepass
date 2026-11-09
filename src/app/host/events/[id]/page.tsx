@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { Icon } from "@/components/icon";
 import { db } from "@/lib/db";
+import { env } from "@/lib/env";
 import { formatDay, formatTime } from "@/lib/format";
 import { requireViewer } from "@/server/auth";
 import { eventStats } from "@/server/stats";
@@ -22,7 +23,11 @@ async function Overview({ params }: { params: Promise<{ id: string }> }) {
     },
   });
   if (!event) notFound();
-  const stats = await eventStats(event.id);
+  const [stats, settings] = await Promise.all([
+    eventStats(event.id),
+    db.paymentSettings.findUnique({ where: { orgId: viewer.orgId }, select: { mode: true } }),
+  ]);
+  const mode = settings?.mode ?? (env().RAZORPAY_KEY_ID?.startsWith("rzp_live_") ? "LIVE" : env().RAZORPAY_KEY_ID ? "TEST" : "MOCK");
 
   return (
     <>
@@ -54,7 +59,7 @@ async function Overview({ params }: { params: Promise<{ id: string }> }) {
           </a>
         </div>
       </div>
-      <LiveDashboard eventId={event.id} initial={stats} />
+      <LiveDashboard eventId={event.id} initial={stats} mode={mode} />
       <div className="card stack" style={{ marginTop: 24 }}>
         <div className="sec-h">
           <h2>Promotions running</h2>
