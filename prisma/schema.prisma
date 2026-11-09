@@ -1,0 +1,464 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  ADMIN
+  VOLUNTEER
+}
+
+enum EventStatus {
+  DRAFT
+  PUBLISHED
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  EXPIRED
+  FAILED
+  NEEDS_REFUND
+}
+
+enum OrderSource {
+  CHECKOUT
+  COMP
+  GIVEAWAY
+  WAITLIST
+}
+
+enum PaymentMode {
+  MOCK
+  TEST
+  LIVE
+}
+
+enum ScanResult {
+  OK
+  DUPLICATE
+  INVALID
+}
+
+enum PromoKind {
+  PERCENT
+  FLAT
+  GROUP_FREE
+}
+
+enum GiveawayStatus {
+  OPEN
+  DRAWN
+}
+
+enum WaitlistStatus {
+  WAITING
+  OFFERED
+  CLAIMED
+  LAPSED
+}
+
+model Organisation {
+  id          String           @id @default(cuid())
+  name        String
+  slug        String           @unique
+  createdAt   DateTime         @default(now())
+  memberships Membership[]
+  events      Event[]
+  invites     Invite[]
+  payments    PaymentSettings?
+}
+
+model User {
+  id           String       @id @default(cuid())
+  email        String       @unique
+  name         String
+  passwordHash String
+  createdAt    DateTime     @default(now())
+  memberships  Membership[]
+  sessions     Session[]
+  checkIns     Ticket[]     @relation("CheckedInBy")
+  scans        CheckInLog[]
+}
+
+model Membership {
+  id     String       @id @default(cuid())
+  userId String
+  orgId  String
+  role   Role
+  user   User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  org    Organisation @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, orgId])
+  @@index([orgId])
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  userId    String
+  orgId     String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Invite {
+  id         String       @id @default(cuid())
+  orgId      String
+  email      String
+  role       Role
+  tokenHash  String       @unique
+  expiresAt  DateTime
+  acceptedAt DateTime?
+  createdAt  DateTime     @default(now())
+  org        Organisation @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@index([orgId])
+}
+
+/// Secrets are AES-256-GCM encrypted with APP_ENCRYPTION_KEY; never returned to the browser.
+model PaymentSettings {
+  orgId                String       @id
+  mode                 PaymentMode  @default(MOCK)
+  testKeyId            String?
+  testKeySecretEnc     String?
+  testWebhookSecretEnc String?
+  testVerifiedAt       DateTime?
+  liveKeyId            String?
+  liveKeySecretEnc     String?
+  liveWebhookSecretEnc String?
+  liveVerifiedAt       DateTime?
+  liveWebhookSeenAt    DateTime?
+  updatedAt            DateTime     @updatedAt
+  org                  Organisation @relation(fields: [orgId], references: [id], onDelete: Cascade)
+}
+
+model Event {
+  id           String             @id @default(cuid())
+  orgId        String
+  slug         String             @unique
+  name         String
+  tagline      String?
+  description  String
+  venue        String
+  venueAddress String?
+  mapUrl       String?
+  startsAt     DateTime
+  doorsAt      DateTime?
+  endsAt       DateTime
+  posterData   Bytes?
+  posterMime   String?
+  accentHex    String             @default("#D4136F")
+  ticketStock  String             @default("paper")
+  serialPrefix String             @default("GP")
+  refundPolicy String?
+  isDemo       Boolean            @default(false)
+  status       EventStatus        @default(DRAFT)
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+  org          Organisation       @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  ticketTypes  TicketType[]
+  artists      Artist[]
+  faqs         Faq[]
+  questions    CheckoutQuestion[]
+  orders       Order[]
+  tickets      Ticket[]
+  promos       PromoCode[]
+  giveaways    Giveaway[]
+  referrals    ReferralLink[]
+  scans        CheckInLog[]
+
+  @@index([orgId])
+}
+
+model Artist {
+  id        String    @id @default(cuid())
+  eventId   String
+  name      String
+  billing   String    @default("Support")
+  startsAt  DateTime?
+  sortOrder Int       @default(0)
+  event     Event     @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@index([eventId])
+}
+
+model Faq {
+  id        String @id @default(cuid())
+  eventId   String
+  question  String
+  answer    String
+  sortOrder Int    @default(0)
+  event     Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@index([eventId])
+}
+
+model CheckoutQuestion {
+  id        String  @id @default(cuid())
+  eventId   String
+  label     String
+  required  Boolean @default(false)
+  sortOrder Int     @default(0)
+  event     Event   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@index([eventId])
+}
+
+/// `reserved` counts seats held by PENDING orders plus seats in PAID orders.
+/// A CHECK constraint (see migration) keeps 0 <= reserved <= capacity.
+model TicketType {
+  id            String           @id @default(cuid())
+  eventId       String
+  name          String
+  description   String?
+  pricePaise    Int
+  capacity      Int
+  reserved      Int              @default(0)
+  admits        Int              @default(1)
+  perOrderLimit Int              @default(10)
+  salesStart    DateTime?
+  salesEnd      DateTime?
+  isDrop        Boolean          @default(false)
+  hidden        Boolean          @default(false)
+  accessCode    String?
+  sortOrder     Int              @default(0)
+  event         Event            @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  priceSteps    PriceStep[]
+  orders        Order[]
+  tickets       Ticket[]
+  dropAlerts    DropSubscriber[]
+  waitlist      WaitlistEntry[]
+  giveaways     Giveaway[]
+
+  @@index([eventId])
+}
+
+/// Price ladder: once `afterSold` seats are taken, the price becomes `pricePaise`.
+model PriceStep {
+  id           String     @id @default(cuid())
+  ticketTypeId String
+  afterSold    Int
+  pricePaise   Int
+  ticketType   TicketType @relation(fields: [ticketTypeId], references: [id], onDelete: Cascade)
+
+  @@unique([ticketTypeId, afterSold])
+}
+
+model DropSubscriber {
+  id           String     @id @default(cuid())
+  ticketTypeId String
+  email        String
+  createdAt    DateTime   @default(now())
+  ticketType   TicketType @relation(fields: [ticketTypeId], references: [id], onDelete: Cascade)
+
+  @@unique([ticketTypeId, email])
+}
+
+/// One table for codes and auto-applied deals (happy hour, group deals).
+/// `used` is counted atomically like seat inventory, and released when a hold expires.
+model PromoCode {
+  id            String            @id @default(cuid())
+  eventId       String
+  code          String
+  label         String?
+  kind          PromoKind
+  value         Int
+  autoApply     Boolean           @default(false)
+  minQty        Int               @default(1)
+  maxUses       Int?
+  used          Int               @default(0)
+  perEmailLimit Int               @default(1)
+  emailDomain   String?
+  ticketTypeIds String[]
+  startsAt      DateTime?
+  endsAt        DateTime?
+  active        Boolean           @default(true)
+  createdAt     DateTime          @default(now())
+  event         Event             @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  redemptions   PromoRedemption[]
+  orders        Order[]
+
+  @@unique([eventId, code])
+}
+
+model PromoRedemption {
+  id      String    @id @default(cuid())
+  promoId String
+  orderId String    @unique
+  email   String
+  promo   PromoCode @relation(fields: [promoId], references: [id], onDelete: Cascade)
+  order   Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([promoId, email])
+}
+
+model Giveaway {
+  id           String          @id @default(cuid())
+  eventId      String
+  ticketTypeId String
+  title        String
+  closesAt     DateTime
+  winnersCount Int
+  seedHash     String
+  seed         String
+  status       GiveawayStatus  @default(OPEN)
+  drawnAt      DateTime?
+  createdAt    DateTime        @default(now())
+  event        Event           @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  ticketType   TicketType      @relation(fields: [ticketTypeId], references: [id], onDelete: Cascade)
+  entries      GiveawayEntry[]
+
+  @@index([eventId])
+}
+
+model GiveawayEntry {
+  id         String   @id @default(cuid())
+  giveawayId String
+  name       String
+  email      String
+  phone      String
+  isWinner   Boolean  @default(false)
+  orderId    String?  @unique
+  createdAt  DateTime @default(now())
+  giveaway   Giveaway @relation(fields: [giveawayId], references: [id], onDelete: Cascade)
+
+  @@unique([giveawayId, email])
+}
+
+model ReferralLink {
+  id          String   @id @default(cuid())
+  eventId     String
+  code        String
+  ownerName   String
+  ownerEmail  String
+  rewardAfter Int      @default(5)
+  createdAt   DateTime @default(now())
+  event       Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  orders      Order[]
+
+  @@unique([eventId, code])
+  @@unique([eventId, ownerEmail])
+}
+
+model WaitlistEntry {
+  id             String         @id @default(cuid())
+  ticketTypeId   String
+  name           String
+  email          String
+  phone          String
+  qty            Int            @default(1)
+  token          String         @unique
+  status         WaitlistStatus @default(WAITING)
+  offerOrderId   String?        @unique
+  offerExpiresAt DateTime?
+  createdAt      DateTime       @default(now())
+  ticketType     TicketType     @relation(fields: [ticketTypeId], references: [id], onDelete: Cascade)
+
+  @@unique([ticketTypeId, email])
+  @@index([ticketTypeId, status, createdAt])
+}
+
+model Order {
+  id                String           @id @default(uuid())
+  eventId           String
+  ticketTypeId      String
+  qty               Int
+  unitPricePaise    Int
+  discountPaise     Int              @default(0)
+  amountPaise       Int
+  buyerName         String           @default("")
+  email             String           @default("")
+  phone             String           @default("")
+  college           String           @default("")
+  answers           Json?
+  status            OrderStatus      @default(PENDING)
+  source            OrderSource      @default(CHECKOUT)
+  holdExpiresAt     DateTime
+  idempotencyKey    String?          @unique
+  provider          String           @default("MOCK")
+  providerOrderId   String?          @unique
+  providerPaymentId String?          @unique
+  promoId           String?
+  referralId        String?
+  failureReason     String?
+  createdAt         DateTime         @default(now())
+  paidAt            DateTime?
+  event             Event            @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  ticketType        TicketType       @relation(fields: [ticketTypeId], references: [id], onDelete: Cascade)
+  promo             PromoCode?       @relation(fields: [promoId], references: [id], onDelete: SetNull)
+  referral          ReferralLink?    @relation(fields: [referralId], references: [id], onDelete: SetNull)
+  tickets           Ticket[]
+  redemption        PromoRedemption?
+
+  @@index([ticketTypeId, status, holdExpiresAt])
+  @@index([eventId, status])
+  @@index([email])
+}
+
+/// Ticket ids are 128-bit random values; QR codes carry an HMAC of the id.
+/// unique(orderId, seq) makes ticket issuing idempotent.
+model Ticket {
+  id            String       @id
+  orderId       String
+  seq           Int
+  eventId       String
+  ticketTypeId  String
+  holderName    String
+  admits        Int
+  serial        String
+  checkedInAt   DateTime?
+  checkedInById String?
+  createdAt     DateTime     @default(now())
+  order         Order        @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  event         Event        @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  ticketType    TicketType   @relation(fields: [ticketTypeId], references: [id], onDelete: Cascade)
+  checkedInBy   User?        @relation("CheckedInBy", fields: [checkedInById], references: [id], onDelete: SetNull)
+  scans         CheckInLog[]
+
+  @@unique([orderId, seq])
+  @@index([eventId, checkedInAt])
+}
+
+model CheckInLog {
+  id           String     @id @default(cuid())
+  eventId      String
+  ticketId     String?
+  result       ScanResult
+  volunteerId  String
+  clientScanId String     @unique
+  scannedAt    DateTime
+  syncedAt     DateTime   @default(now())
+  event        Event      @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  ticket       Ticket?    @relation(fields: [ticketId], references: [id], onDelete: SetNull)
+  volunteer    User       @relation(fields: [volunteerId], references: [id], onDelete: Cascade)
+
+  @@index([eventId, scannedAt])
+}
+
+model WebhookEvent {
+  id              String   @id @default(cuid())
+  provider        String
+  providerEventId String
+  receivedAt      DateTime @default(now())
+
+  @@unique([provider, providerEventId])
+}
+
+/// Privacy-respecting usage counter: action type + optional org/event, no personal data.
+model UsageEvent {
+  id        String   @id @default(cuid())
+  type      String
+  orgId     String?
+  eventId   String?
+  createdAt DateTime @default(now())
+
+  @@index([type, createdAt])
+}

@@ -1,0 +1,5 @@
+-- AlterTable
+ALTER TABLE "Order" ALTER COLUMN "buyerName" SET DEFAULT '',
+ALTER COLUMN "email" SET DEFAULT '',
+ALTER COLUMN "phone" SET DEFAULT '',
+ALTER COLUMN "college" SET DEFAULT '';
