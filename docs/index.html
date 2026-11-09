@@ -1,0 +1,647 @@
+<!doctype html>
+<html lang="en-IN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>GatePass — concert tickets and QR entry for college gigs</title>
+    <meta
+      name="description"
+      content="GatePass sells limited seats without overselling, takes payments through the host's own Razorpay account, and checks people in with any phone camera, even offline."
+    />
+    <meta property="og:title" content="GatePass — concert tickets and QR entry" />
+    <meta
+      property="og:description"
+      content="Oversell-proof seat holds, Razorpay payments, and an offline phone scanner for college concerts."
+    />
+    <meta property="og:image" content="screenshots/landing.jpg" />
+    <meta name="theme-color" content="#f4f0e8" />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&family=JetBrains+Mono:wght@500;700&display=swap"
+    />
+    <style>
+      :root {
+        --bg: #f4f0e8;
+        --surface: #fffdf8;
+        --surface-2: #ece6da;
+        --ink: #16130f;
+        --ink-2: #5a544a;
+        --line: #ddd5c6;
+        --accent: #d4136f;
+        --accent-soft: #fbe3ee;
+        --ok: #18b26b;
+        --font: "Bricolage Grotesque", system-ui, sans-serif;
+        --mono: "JetBrains Mono", ui-monospace, monospace;
+        color-scheme: light;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #14120f;
+          --surface: #1d1a16;
+          --surface-2: #27231e;
+          --ink: #f4f0e8;
+          --ink-2: #b9b1a3;
+          --line: #34302a;
+          --accent: #ff5fa2;
+          --accent-soft: #3a1828;
+          color-scheme: dark;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: var(--font);
+        color: var(--ink);
+        background: var(--bg);
+        line-height: 1.5;
+        -webkit-font-smoothing: antialiased;
+      }
+      a {
+        color: inherit;
+      }
+      img {
+        display: block;
+        max-width: 100%;
+        height: auto;
+      }
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 3px;
+        border-radius: 4px;
+      }
+      .wrap {
+        width: 100%;
+        max-width: 1120px;
+        margin: 0 auto;
+        padding: 0 16px;
+      }
+      .label {
+        font: 500 11px/1.4 var(--mono);
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--ink-2);
+      }
+      .display {
+        font-stretch: 75%;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: -0.025em;
+        line-height: 0.86;
+        margin: 0;
+      }
+      .display span {
+        color: var(--accent);
+      }
+
+      header.top {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 16px;
+        border-bottom: 1px solid var(--line);
+      }
+      .brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 750;
+        letter-spacing: -0.02em;
+        text-decoration: none;
+      }
+      .brand svg {
+        width: 26px;
+        height: 18px;
+        color: var(--accent);
+      }
+      .grow {
+        flex: 1;
+      }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        min-height: 44px;
+        padding: 0 18px;
+        border-radius: 10px;
+        border: 1px solid var(--line);
+        background: var(--surface);
+        font-weight: 650;
+        font-size: 15px;
+        text-decoration: none;
+        white-space: nowrap;
+        transition:
+          transform 120ms cubic-bezier(0.34, 1.45, 0.64, 1),
+          border-color 120ms;
+      }
+      .btn:hover {
+        border-color: var(--ink-2);
+      }
+      .btn:active {
+        transform: scale(0.96);
+      }
+      .btn-accent {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #fff;
+      }
+      .btn-sm {
+        min-height: 36px;
+        padding: 0 12px;
+        font-size: 13px;
+      }
+
+      .hero {
+        display: grid;
+        gap: 40px;
+        padding: 56px 0 40px;
+        align-items: center;
+      }
+      @media (min-width: 900px) {
+        .hero {
+          grid-template-columns: 1.1fr 1fr;
+          padding-top: 80px;
+        }
+      }
+      .hero h1 {
+        font-size: clamp(3.2rem, 12vw, 7rem);
+      }
+      .hero p.lead {
+        font-size: 1.25rem;
+        color: var(--ink-2);
+        max-width: 42ch;
+        margin: 20px 0 24px;
+      }
+      .ctas {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+      .hero-shot {
+        border-radius: 14px;
+        border: 1px solid var(--line);
+        box-shadow: 0 24px 60px -30px rgba(22, 19, 15, 0.45);
+        transform: rotate(1.5deg);
+        overflow: hidden;
+        background: var(--surface);
+      }
+
+      /* ticket-stub section heads */
+      section {
+        padding: 56px 0;
+        border-top: 1px solid var(--line);
+      }
+      .sec-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 16px;
+        flex-wrap: wrap;
+        margin-bottom: 24px;
+      }
+      .sec-head h2 {
+        font-size: clamp(2rem, 6vw, 3rem);
+      }
+
+      .problems {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: grid;
+        gap: 0 40px;
+        border-top: 2px solid var(--ink);
+      }
+      @media (min-width: 800px) {
+        .problems {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+      .problems li {
+        display: grid;
+        grid-template-columns: 44px 1fr;
+        gap: 4px 12px;
+        padding: 18px 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .problems .n {
+        font: 700 14px var(--mono);
+        color: var(--accent);
+      }
+      .problems b {
+        font-size: 1.15rem;
+      }
+      .problems p {
+        margin: 4px 0 0;
+        color: var(--ink-2);
+      }
+
+      .gallery {
+        display: grid;
+        gap: 24px;
+      }
+      @media (min-width: 900px) {
+        .gallery {
+          grid-template-columns: 1fr 1fr;
+        }
+        .gallery figure.wide {
+          grid-column: 1 / -1;
+        }
+      }
+      figure {
+        margin: 0;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        overflow: hidden;
+        background: var(--surface);
+      }
+      figcaption {
+        padding: 12px 16px;
+        border-top: 1px dashed var(--line);
+        font-size: 14px;
+        color: var(--ink-2);
+      }
+      figcaption b {
+        color: var(--ink);
+      }
+
+      .how {
+        display: grid;
+        gap: 16px;
+      }
+      @media (min-width: 900px) {
+        .how {
+          grid-template-columns: repeat(3, 1fr);
+        }
+      }
+      .stub {
+        position: relative;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 20px;
+      }
+      .stub::after {
+        content: "";
+        position: absolute;
+        left: 20px;
+        right: 20px;
+        bottom: 56px;
+        border-top: 2px dotted var(--line);
+      }
+      .stub h3 {
+        margin: 6px 0 8px;
+        font-size: 1.2rem;
+      }
+      .stub p {
+        margin: 0 0 40px;
+        color: var(--ink-2);
+        font-size: 15px;
+      }
+      .stub code {
+        font: 500 12px var(--mono);
+        color: var(--accent);
+      }
+
+      .feature-cols {
+        display: grid;
+        gap: 24px;
+      }
+      @media (min-width: 900px) {
+        .feature-cols {
+          grid-template-columns: repeat(3, 1fr);
+        }
+      }
+      .feature-cols h3 {
+        margin: 0 0 8px;
+        font-stretch: 75%;
+        font-weight: 800;
+        text-transform: uppercase;
+        font-size: 1.4rem;
+      }
+      .feature-cols ul {
+        margin: 0;
+        padding-left: 18px;
+        color: var(--ink-2);
+      }
+      .feature-cols li {
+        margin: 6px 0;
+      }
+
+      .stack {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        height: 30px;
+        padding: 0 12px;
+        border-radius: 999px;
+        background: var(--surface-2);
+        font-size: 14px;
+        font-weight: 600;
+      }
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        margin-top: 24px;
+      }
+      @media (min-width: 800px) {
+        .stats {
+          grid-template-columns: repeat(4, 1fr);
+        }
+      }
+      .stat {
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 16px;
+        background: var(--surface);
+      }
+      .stat b {
+        display: block;
+        font: 800 2.2rem/1 var(--font);
+        font-stretch: 75%;
+      }
+      .stat span {
+        font-size: 14px;
+        color: var(--ink-2);
+      }
+
+      footer {
+        border-top: 1px solid var(--line);
+        padding: 32px 0 48px;
+        font-size: 14px;
+        color: var(--ink-2);
+      }
+      footer .wrap {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          transition: none !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="top">
+      <a class="brand" href="./">
+        <svg viewBox="0 0 32 22" aria-hidden="true">
+          <path
+            fill="currentColor"
+            d="M2 2h28a1.5 1.5 0 0 1 1.5 1.5v4.2a3.3 3.3 0 0 0 0 6.6v4.2A1.5 1.5 0 0 1 30 20H2A1.5 1.5 0 0 1 .5 18.5v-4.2a3.3 3.3 0 0 0 0-6.6V3.5A1.5 1.5 0 0 1 2 2Z"
+          />
+        </svg>
+        GatePass
+      </a>
+      <span class="grow"></span>
+      <a class="btn btn-sm" href="https://github.com/Devkeerthi-code/gatepass">View code on GitHub</a>
+    </header>
+
+    <main id="main">
+      <div class="wrap hero">
+        <div>
+          <p class="label">Ticketing + QR check-in for college concerts in India</p>
+          <h1 class="display">Tickets and the gate, <span>sorted.</span></h1>
+          <p class="lead">
+            Fest teams sell seats on Google Forms, check UPI screenshots by hand, oversell, and queue people at the gate with a printed
+            list. GatePass replaces all of that.
+          </p>
+          <div class="ctas">
+            <a class="btn btn-accent" href="https://github.com/Devkeerthi-code/gatepass">Read the code</a>
+            <a class="btn" href="https://github.com/Devkeerthi-code/gatepass#how-to-run-locally">Run it locally</a>
+            <!-- TODO: add the live Vercel link here once deployed -->
+          </div>
+        </div>
+        <div class="hero-shot">
+          <img src="screenshots/landing.jpg" width="1440" height="731" alt="GatePass landing page with a fanned stack of concert tickets" />
+        </div>
+      </div>
+
+      <section aria-labelledby="problem-h">
+        <div class="wrap">
+          <div class="sec-head">
+            <h2 id="problem-h" class="display">What it fixes</h2>
+            <span class="label">The four failures of a Google-Form fest</span>
+          </div>
+          <ol class="problems">
+            <li>
+              <span class="n">01</span>
+              <div>
+                <b>Overselling the last seats</b>
+                <p>Each checkout holds seats for 10 minutes in Postgres. A CHECK constraint makes "sold more than capacity" impossible.</p>
+              </div>
+            </li>
+            <li>
+              <span class="n">02</span>
+              <div>
+                <b>Checking UPI screenshots by hand</b>
+                <p>
+                  Razorpay's signed payment result issues the ticket. If the buyer closes the tab, the signed webhook does it instead —
+                  never twice.
+                </p>
+              </div>
+            </li>
+            <li>
+              <span class="n">03</span>
+              <div>
+                <b>Queues at a printed list</b>
+                <p>
+                  Volunteers scan with their phone camera: full-screen green, amber or red. A second scan says who let them in and when.
+                </p>
+              </div>
+            </li>
+            <li>
+              <span class="n">04</span>
+              <div>
+                <b>No idea what's happening</b>
+                <p>
+                  A live dashboard shows sales per ticket type, revenue, check-ins and arrivals every 15 minutes, plus a CSV for sponsors.
+                </p>
+              </div>
+            </li>
+          </ol>
+        </div>
+      </section>
+
+      <section aria-labelledby="shots-h">
+        <div class="wrap">
+          <div class="sec-head">
+            <h2 id="shots-h" class="display">See it</h2>
+            <span class="label">Screens from the running app · demo concert data</span>
+          </div>
+          <div class="gallery">
+            <figure class="wide">
+              <img
+                src="screenshots/concert.jpg"
+                width="1440"
+                height="731"
+                loading="lazy"
+                alt="Concert page: gig poster on the left, ticket tiers drawn as physical tickets on the right"
+              />
+              <figcaption>
+                <b>Concert page.</b> Each tier is a physical ticket: price ladder ("₹699 after 88 more sold"), live seats left, a flash-drop
+                countdown and presale codes.
+              </figcaption>
+            </figure>
+            <figure>
+              <img
+                src="screenshots/ticket.jpg"
+                width="1440"
+                height="731"
+                loading="lazy"
+                alt="Ticket page with a signed QR code and add-to-calendar buttons"
+              />
+              <figcaption>
+                <b>The ticket.</b> HMAC-signed QR, calendar export, referral link. It tilts and can be flung with spring physics.
+              </figcaption>
+            </figure>
+            <figure>
+              <img
+                src="screenshots/dashboard.jpg"
+                width="1440"
+                height="731"
+                loading="lazy"
+                alt="Host dashboard with sales, revenue, check-ins and an entries-per-15-minutes chart"
+              />
+              <figcaption><b>Live dashboard.</b> Sold per tier, revenue, who's inside, and arrivals every 15 minutes.</figcaption>
+            </figure>
+            <figure class="wide">
+              <img
+                src="screenshots/promotions.jpg"
+                width="1440"
+                height="731"
+                loading="lazy"
+                alt="Promotions hub with discount codes, flash drops, giveaways, happy hour, group deals and price ladders"
+              />
+              <figcaption>
+                <b>Promotions hub.</b> Discount codes, flash drops, verifiable giveaways, happy hour, group deals, price ladders, presale
+                codes, fan ambassadors and a waitlist.
+              </figcaption>
+            </figure>
+          </div>
+        </div>
+      </section>
+
+      <section aria-labelledby="how-h">
+        <div class="wrap">
+          <div class="sec-head">
+            <h2 id="how-h" class="display">How it stays correct</h2>
+            <span class="label">The parts worth asking about in an interview</span>
+          </div>
+          <div class="how">
+            <div class="stub">
+              <span class="label">Inventory</span>
+              <h3>Atomic seat holds</h3>
+              <p>
+                One conditional UPDATE reserves seats only if they fit. Expired holds are released whenever inventory is read, plus a daily
+                cron. 40 concurrent buyers for 10 seats → exactly 10.
+              </p>
+              <code>reserved + n &lt;= capacity</code>
+            </div>
+            <div class="stub">
+              <span class="label">Payments</span>
+              <h3>Two paths, one outcome</h3>
+              <p>
+                The checkout callback and the webhook both call one idempotent confirm. Retries, double delivery and both paths racing
+                produce exactly one set of tickets.
+              </p>
+              <code>PENDING → PAID once</code>
+            </div>
+            <div class="stub">
+              <span class="label">The gate</span>
+              <h3>First scan wins</h3>
+              <p>
+                Check-in only succeeds while the ticket is unscanned. Scanners cache the guest list in IndexedDB, queue scans offline and
+                sync when the signal returns.
+              </p>
+              <code>checkedInAt IS NULL</code>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section aria-labelledby="features-h">
+        <div class="wrap">
+          <div class="sec-head">
+            <h2 id="features-h" class="display">Built for three people</h2>
+          </div>
+          <div class="feature-cols">
+            <div>
+              <h3>The fan</h3>
+              <ul>
+                <li>10-minute seat hold with a visible countdown</li>
+                <li>Promo codes, group deals and happy-hour prices</li>
+                <li>Ticket page that works offline once loaded</li>
+                <li>Waitlist with a 15-minute offer when seats free up</li>
+                <li>Find tickets again with email + phone</li>
+              </ul>
+            </div>
+            <div>
+              <h3>The host</h3>
+              <ul>
+                <li>Concert builder with live poster and ticket preview</li>
+                <li>Paste Razorpay keys → collect into your own account</li>
+                <li>Mock, Razorpay Test and checklist-gated Live modes</li>
+                <li>One-click refunds, guest list, CSV export</li>
+                <li>Team invites with admin / gate-crew roles</li>
+              </ul>
+            </div>
+            <div>
+              <h3>The volunteer</h3>
+              <ul>
+                <li>Phone camera scanner (installable PWA)</li>
+                <li>Full-screen VALID / ALREADY IN / NOT VALID</li>
+                <li>Search by name, last 4 phone digits or serial</li>
+                <li>Works offline and syncs, conflicts reported</li>
+                <li>Can't open anything except the scanner</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section aria-labelledby="stack-h">
+        <div class="wrap">
+          <div class="sec-head">
+            <h2 id="stack-h" class="display">Stack</h2>
+          </div>
+          <div class="stack">
+            <span class="chip">Next.js 16 (App Router)</span>
+            <span class="chip">TypeScript</span>
+            <span class="chip">PostgreSQL · Neon</span>
+            <span class="chip">Prisma 7</span>
+            <span class="chip">Razorpay</span>
+            <span class="chip">zod</span>
+            <span class="chip">Tailwind CSS 4</span>
+            <span class="chip">Vitest</span>
+            <span class="chip">GitHub Actions</span>
+          </div>
+          <div class="stats">
+            <div class="stat"><b>67</b><span>tests incl. real concurrency against Postgres</span></div>
+            <div class="stat"><b>0</b><span>oversold seats with 40 buyers racing for 10</span></div>
+            <div class="stat"><b>3</b><span>payment modes: Mock, Test, Live</span></div>
+            <div class="stat"><b>360px</b><span>phone-first, works on cheap Androids</span></div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="wrap">
+        <span>GatePass · built by Devkeerthi · prices in ₹, times in IST</span>
+        <a href="https://github.com/Devkeerthi-code/gatepass">github.com/Devkeerthi-code/gatepass</a>
+      </div>
+    </footer>
+  </body>
+</html>

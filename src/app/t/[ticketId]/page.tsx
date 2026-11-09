@@ -50,7 +50,9 @@ async function TicketView({ params }: { params: Promise<{ ticketId: string }> })
         </Link>
         <span className="grow" />
         <Link className="btn btn-ghost btn-sm" href="/find">
-          <span className="hide-sm">Find&nbsp;</span>my tickets
+          <span>
+            <span className="hide-sm">Find </span>my tickets
+          </span>
         </Link>
       </header>
       <main id="main" className="ticket-page" style={accentVars(event.accentHex)}>

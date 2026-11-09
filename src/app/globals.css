@@ -2916,7 +2916,7 @@ dialog.sheet[open] {
 }
 .fixes {
   list-style: none;
-  margin: 0;
+  margin: var(--s4) 0 0;
   padding: 0;
   display: grid;
   gap: 0 var(--s6);
@@ -2953,10 +2953,10 @@ dialog.sheet[open] {
   inset: 0 0 auto 0;
 }
 .hero-stack > :nth-child(1) {
-  transform: rotate(-8deg) translate(-8px, 40px);
+  transform: rotate(-7deg) translate(-24px, 118px);
 }
 .hero-stack > :nth-child(2) {
-  transform: rotate(4deg) translate(12px, 20px);
+  transform: rotate(5deg) translate(28px, 62px);
 }
 .hero-stack > :nth-child(3) {
   z-index: 2;

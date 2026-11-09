@@ -2,7 +2,8 @@
 
 Ticketing and QR check-in for college concerts and gigs: sell limited seats without overselling, take payments through your own Razorpay account, and scan people in with any phone.
 
-**Live demo:** TODO — add the Vercel link after deploying.
+**Project page:** https://devkeerthi-code.github.io/gatepass/  
+**Live app:** TODO — add the Vercel link after deploying.
 
 ## Who is this for and what problem does it solve?
 
@@ -16,7 +17,13 @@ GatePass replaces that whole chain. The host builds a concert page with ticket t
 
 ## Screenshots
 
-TODO: add screenshots to `docs/` (concert page, checkout, ticket, scanner result, host dashboard, payments settings) and link them here.
+| Concert page                                                                       | Ticket                                                     |
+| ---------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| ![Concert page with tiers drawn as physical tickets](docs/screenshots/concert.jpg) | ![Ticket with signed QR code](docs/screenshots/ticket.jpg) |
+| **Host dashboard**                                                                 | **Promotions hub**                                         |
+| ![Live host dashboard](docs/screenshots/dashboard.jpg)                             | ![Promotions hub](docs/screenshots/promotions.jpg)         |
+
+Screens are from the running app with the clearly labelled DEMO concert.
 
 ## Features
 
