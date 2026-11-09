@@ -168,7 +168,7 @@ You need Node 20+ and a free [Neon](https://neon.tech) Postgres database.
 npm install
 cp .env.example .env        # fill in DATABASE_URL, DIRECT_URL, TEST_DATABASE_URL and generate the secrets
 npm run db:migrate          # apply migrations
-npm run db:seed             # optional: clearly labelled DEMO concert + demo logins (printed once)
+npm run db:seed             # optional: clearly labelled DEMO concert (set SEED_ADMIN_EMAIL etc. in .env for demo logins)
 npm run dev                 # http://localhost:3000
 ```
 

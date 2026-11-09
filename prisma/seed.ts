@@ -14,8 +14,7 @@ import { issueTickets } from "../src/server/orders";
 import { hashPassword } from "../src/server/password";
 
 const DEMO_SLUG = "night-shift-demo";
-const ADMIN_EMAIL = "demo-host@gatepass.local";
-const VOLUNTEER_EMAIL = "demo-gate@gatepass.local";
+const DEMO_NAMES = ["Asha (demo host)", "Ravi (demo gate crew)"];
 
 const IST = (date: string, time: string) => new Date(`${date}T${time}:00+05:30`);
 
@@ -44,11 +43,31 @@ const FIRST = [
 const LAST = ["Iyer", "Sharma", "Reddy", "Nair", "Gupta", "Menon", "Patel", "Rao", "Das", "Kulkarni"];
 const COLLEGES = ["DEMO Institute of Technology", "DEMO Arts College", "DEMO Engineering College", "Not a student"];
 
-function password(envName: string): { value: string; generated: boolean } {
-  const fromEnv = process.env[envName];
+type DemoLogin = { email: string; password: string; generated: boolean; canLogIn: boolean };
+
+/**
+ * Demo logins exist only when you choose their emails in .env, so no account is hard-coded in the repo.
+ * Without one, the user still exists (it owns the demo check-ins) but has a random address and password nobody knows.
+ */
+function demoLogin(emailVar: string, passwordVar: string): DemoLogin {
+  const email = process.env[emailVar]?.trim().toLowerCase();
+  if (!email) {
+    return {
+      email: `locked-${randomBytes(8).toString("hex")}@invalid`,
+      password: randomBytes(32).toString("base64url"),
+      generated: true,
+      canLogIn: false,
+    };
+  }
+  const fromEnv = process.env[passwordVar];
   return fromEnv && fromEnv.length >= 8
-    ? { value: fromEnv, generated: false }
-    : { value: randomBytes(9).toString("base64url"), generated: true };
+    ? { email, password: fromEnv, generated: false, canLogIn: true }
+    : { email, password: randomBytes(9).toString("base64url"), generated: true, canLogIn: true };
+}
+
+function printLogin(label: string, envPrefix: string, l: DemoLogin) {
+  if (!l.canLogIn) return console.log(`${label} login: not created (set ${envPrefix}_EMAIL in .env to get one)`);
+  console.log(`${label} login: ${l.email}  ${l.generated ? `password ${l.password} (generated, shown once)` : "(password from .env)"}`);
 }
 
 async function resetDemo() {
@@ -57,19 +76,22 @@ async function resetDemo() {
     await db.order.deleteMany({ where: { event: { orgId: o.id } } });
     await db.organisation.delete({ where: { id: o.id } });
   }
-  await db.user.deleteMany({ where: { email: { in: [ADMIN_EMAIL, VOLUNTEER_EMAIL] } } });
+  await db.user.deleteMany({ where: { name: { in: DEMO_NAMES }, memberships: { none: {} } } });
 }
 
 async function main() {
   await resetDemo();
-  const adminPw = password("SEED_ADMIN_PASSWORD");
-  const volPw = password("SEED_VOLUNTEER_PASSWORD");
+  const adminLogin = demoLogin("SEED_ADMIN_EMAIL", "SEED_ADMIN_PASSWORD");
+  const volLogin = demoLogin("SEED_VOLUNTEER_EMAIL", "SEED_VOLUNTEER_PASSWORD");
+  await db.user.deleteMany({ where: { email: { in: [adminLogin.email, volLogin.email] } } });
 
   const org = await db.organisation.create({ data: { name: "DEMO Music Club", slug: "demo-dit-music-club" } });
   const admin = await db.user.create({
-    data: { email: ADMIN_EMAIL, name: "Asha (demo host)", passwordHash: await hashPassword(adminPw.value) },
+    data: { email: adminLogin.email, name: DEMO_NAMES[0], passwordHash: await hashPassword(adminLogin.password) },
   });
-  const volunteer = await db.user.create({ data: { email: VOLUNTEER_EMAIL, name: "Ravi", passwordHash: await hashPassword(volPw.value) } });
+  const volunteer = await db.user.create({
+    data: { email: volLogin.email, name: DEMO_NAMES[1], passwordHash: await hashPassword(volLogin.password) },
+  });
   await db.membership.createMany({
     data: [
       { userId: admin.id, orgId: org.id, role: "ADMIN" },
@@ -285,12 +307,8 @@ async function main() {
   });
 
   console.log("\nDEMO concert ready → /c/" + DEMO_SLUG);
-  console.log(
-    `Host login:      ${ADMIN_EMAIL}  ${adminPw.generated ? `password ${adminPw.value}  (generated; set SEED_ADMIN_PASSWORD to choose)` : "(password from SEED_ADMIN_PASSWORD)"}`,
-  );
-  console.log(
-    `Volunteer login: ${VOLUNTEER_EMAIL}  ${volPw.generated ? `password ${volPw.value}  (generated; set SEED_VOLUNTEER_PASSWORD to choose)` : "(password from SEED_VOLUNTEER_PASSWORD)"}`,
-  );
+  printLogin("Host", "SEED_ADMIN", adminLogin);
+  printLogin("Volunteer", "SEED_VOLUNTEER", volLogin);
   console.log(`Tickets issued: ${tickets.length}, checked in: ${toCheckIn.length}\n`);
 }
 
