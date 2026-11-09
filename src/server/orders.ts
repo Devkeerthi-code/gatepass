@@ -26,6 +26,7 @@ export async function issueTickets(tx: Tx, order: IssuableOrder): Promise<void> 
       serial: `${tt.event.serialPrefix}-${orderTag}-${String(seq + 1).padStart(2, "0")}`,
     })),
   });
+  await tx.waitlistEntry.updateMany({ where: { offerOrderId: order.id }, data: { status: "CLAIMED" } });
 }
 
 export type ConfirmOutcome =
